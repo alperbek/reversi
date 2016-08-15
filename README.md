@@ -51,7 +51,7 @@ You can play by entering your move.
 7| @ |   | @ | @ | @ | O |   |   | 
 ----------------------------------
 Turn: 41 Black: 17 White: 28
-Enter a move row, col: 1,2    <=== enter your next move in (row,col)
+Enter a move row, col: 1,4    <=== enter your move (row,col)
 ```
 
 - weak or strong (depends on the mood)
@@ -60,7 +60,7 @@ Enter a move row, col: 1,2    <=== enter your next move in (row,col)
 
 ## Minimax Player
 
-This player uses the minimax decision rule. 
+This player uses the [minimax](https://en.wikipedia.org/wiki/Minimax) decision rule. 
 
 - requires a max_depth parameter (how deep it should think ahead)
   + max_depth = 3 => it's quick but not very strong
@@ -73,40 +73,30 @@ If you are human, you'll need to be doing something else while waiting.
 
 The below image shows when I was playing while reading an article on wikipedia.
 
-<img src="images/reversi_play.png" width="50%"/>
-
-- https://en.wikipedia.org/wiki/Minimax
+<img src="images/reversi_play.png" width="30%"/>
 
 ## Minimax with Alpha Beta Pruning
 
-This player is an improvement over the naive Minimax Player.
+This player is [an improvement over the naive minimax](https://en.wikipedia.org/wiki/Alpha–beta_pruning) logic.
 
 - skips unnecessary tree search
 - faster than base Minimax Player
-
-- https://en.wikipedia.org/wiki/Alpha–beta_pruning
 
 ## Monte Carlo Tree Search
 
 TODO implementing...
 
-This player uses random (monte carlo) simulation of tree search to find out 
+This player uses [random (monte carlo) simulation of tree search](https://en.wikipedia.org/wiki/Monte_Carlo_tree_search) to find out 
 which move will most likely make the player win.
-
-- https://en.wikipedia.org/wiki/Monte_Carlo_tree_search
 
 ## Deep-Q Network
 
 TODO implementing...
 
-This player uses Q-learning (from Reinforcement Learning) with Neural Network as the value function.
+This player uses [Q-learning](https://en.wikipedia.org/wiki/Q-learning) (from Reinforcement Learning) with Neural Network as the value function.
 
-- https://en.wikipedia.org/wiki/Deep_learning
-- https://en.wikipedia.org/wiki/Q-learning
-- https://deepmind.com/dqn
-
-## Programming References
-
+## References
 - https://andysalerno.com/2016/03/Monte-Carlo-Reversi
 - https://jeffbradberry.com/posts/2015/09/intro-to-monte-carlo-tree-search/
 - http://aima.cs.berkeley.edu/python/games.html
+
