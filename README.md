@@ -93,3 +93,8 @@ TODO implementing...
 https://en.wikipedia.org/wiki/Deep_learning
 https://en.wikipedia.org/wiki/Q-learning
 https://deepmind.com/dqn
+
+## References
+
+https://github.com/andysalerno/reversi_ai
+http://aima.cs.berkeley.edu/python/games.html
