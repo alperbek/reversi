@@ -11,17 +11,12 @@ class GameContext(object):
         """
         return []
 
-    def get_state(self):
-        """ Returns the current state of this game context
-        """
-        return None
-
-    def get_score(self, player):
+    def get_score(self):
         """ Returns the current score of the player
         """
         return -1
 
-    def get_plaery(self):
+    def get_player(self):
         """ Returns the current player
         """
         return None
@@ -32,6 +27,6 @@ class GameContext(object):
         return None
 
     def summary(self):
-        """ Returns a string of the current board state
+        """ Prints the current board state
         """
-        return ""
+        pass
