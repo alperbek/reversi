@@ -1,7 +1,7 @@
 from game.board import GameBoard
 from game.context import GameContext
 from game.match import simple_match
-from game.player import RandomPlayer, MiniMaxPlayer
+from game.player import RandomPlayer, ManualPlayer, MiniMaxPlayer
 import itertools
 
 # constants
@@ -104,10 +104,28 @@ class Reversi(GameContext):
         return 'Black: {} White: {}'.format(self._black_score, self._white_score)
 
 
+def choose_player():
+    while True:
+        print('[1] Random Player')
+        print('[2] MiniMax Player')
+        print('[3] Manual Player (You)')
+        try:
+            number = eval(raw_input('Enter [1-3]: '))
+            if number == 1:
+                return RandomPlayer()
+            if number == 2:
+                number = eval(raw_input('Max Depth: '))
+                return MiniMaxPlayer(number)
+            if number == 3:
+                return ManualPlayer()
+        except Exception as e:
+            print(e)
+
+
 def main():
     print("Game start")
-    black_player = RandomPlayer()
-    white_player = MiniMaxPlayer(3)
+    black_player = choose_player()
+    white_player = choose_player()
     context = Reversi.create(black_player, white_player)
     simple_match(context)
     print("Game end")

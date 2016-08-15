@@ -16,6 +16,32 @@ class RandomPlayer(Player):
         return random.choice(context.get_valid_actions(self))
 
 
+class ManualPlayer(Player):
+    """ AKA Human Player
+    """
+    def decide(self, context):
+        valid_actions = context.get_valid_actions(self)
+        if len(valid_actions) == 0:
+            return None
+        while True:
+            command = raw_input('Enter a move row, col: ')
+            if command == 'quit':
+                exit(0)
+            elif command == 'show':
+                print('Valid moves: {}'.format(valid_actions))
+            elif command == 'help':
+                print('quit: terminate the match')
+                print('help: show this help')
+            else:
+                try:
+                    action = eval(command)
+                except Exception as e:
+                    print('Invalid input: {}'.format(e))
+                if action in valid_actions:
+                    return action
+                print('Invalid move: {}'.format(action))
+
+
 class MiniMaxPlayer(Player):
     def __init__(self, max_depth):
         self._max_depth = max_depth

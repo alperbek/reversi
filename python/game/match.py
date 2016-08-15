@@ -19,6 +19,6 @@ def simple_match(context):
                 reward = context.get_score(player) - score
                 new_state = context.get_state()
                 player.update(state, action, reward, new_state)
-                print(new_state)
-                print('Turn: {} {}\n'.format(turn, context.summary()))
+                print('\n{}'.format(new_state))
+                print('Turn: {} {}'.format(turn, context.summary()))
             turn += 1
