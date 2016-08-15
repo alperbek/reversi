@@ -58,7 +58,7 @@ Enter a move row, col: 1,4    <=== enter your move (row,col)
 - can be thinking very long but won't forgive the opponent for taking time 
 - could/would/should learn from experience
 
-## Minimax Player
+## Minimax Player (aka Naive Minimax)
 
 This player uses the [minimax](https://en.wikipedia.org/wiki/Minimax) decision rule. 
 
@@ -77,10 +77,11 @@ The below image shows when I was playing while reading an article on wikipedia.
 
 ## Minimax with Alpha Beta Pruning
 
-This player is [an improvement over the naive minimax](https://en.wikipedia.org/wiki/Alpha–beta_pruning) logic.
+TODO implementing...
 
-- skips unnecessary tree search
-- faster than base Minimax Player
+This player uses [an improved minimax](https://en.wikipedia.org/wiki/Alpha–beta_pruning) logic.
+
+- skips unnecessary tree search (faster than the naive minimax logic)
 
 ## Monte Carlo Tree Search
 
