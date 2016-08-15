@@ -77,8 +77,6 @@ The below image shows when I was playing while reading an article on wikipedia.
 
 ## Minimax with Alpha Beta Pruning
 
-TODO implementing...
-
 This player uses [an improved minimax](https://en.wikipedia.org/wiki/Alpha–beta_pruning) logic.
 
 - skips unnecessary tree search (faster than the naive minimax logic)

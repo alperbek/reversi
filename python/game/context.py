@@ -6,49 +6,32 @@ class GameContext(object):
         """
         return False
 
-    def get_valid_actions(self, player):
-        """ Returns a list of valid actions for the give player
-
-        :param player: a player instance
-        :return: a list of valid actions
+    def get_valid_actions(self):
+        """ Returns a list of valid actions for  current player
         """
         return []
 
     def get_state(self):
         """ Returns the current state of this game context
-
-        :return: the current state of this game context
         """
         return None
 
     def get_score(self, player):
         """ Returns the current score of the player
-
-        :param player: a player instance
-        :return: the current score of the given player
         """
         return -1
 
-    def get_opponent(self, player):
-        """ Returns the opponent player
-
-        :param player: a player instance
-        :return: the opponent player
+    def get_plaery(self):
+        """ Returns the current player
         """
         return None
 
-    def apply(self, player, action):
+    def apply(self, action):
         """ Returns a new game context (the current context copy + action applied)
-
-        :param player: a player instance who is applying the action
-        :param action: an action to be applied
-        :return:
         """
         return None
 
     def summary(self):
         """ Returns a string of the current board state
-
-        :return: a string of the current board state
         """
         return ""
