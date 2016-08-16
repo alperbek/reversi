@@ -34,17 +34,18 @@ This player randomly chooses a move from the legal moves.
 You can play by entering your move.
 
 ```shell
+[21:59:56] Turn: 6 (ManualPlayer)
  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 
 ----------------------------------
 0|   |   |   |   |   |   |   |   | 
 ----------------------------------
 1|   |   |   |   |   |   |   |   | 
 ----------------------------------
-2|   |   |   | @ |   |   |   |   | 
+2|   |   |   |   |   | @ |   | @ | 
 ----------------------------------
-3|   |   |   | @ | @ |   |   |   | 
+3|   |   |   | O | O | O | @ |   | 
 ----------------------------------
-4|   |   |   | @ | O |   |   |   | 
+4|   |   |   | @ | @ | @ |   |   | 
 ----------------------------------
 5|   |   |   |   |   |   |   |   | 
 ----------------------------------
@@ -52,9 +53,8 @@ You can play by entering your move.
 ----------------------------------
 7|   |   |   |   |   |   |   |   | 
 ----------------------------------
-Black: 4 White: 1
-[20:42:49] Turn: 2 (ManualPlayer)
-Enter a move row, col: 4,2 <= enter your move (row,col)
+Black: 6 White: 3
+Enter a move row, col: 5,2   <= enter your move!
 ```
 
 - weak or strong (depends on the mood)
@@ -84,12 +84,23 @@ This player uses [an improved minimax](https://en.wikipedia.org/wiki/Alpha–bet
 
 - skips unnecessary tree search (faster than the naive minimax logic)
 
-## Monte Carlo Tree Search
+It is faster than the naive Minimax player.  You can try with max_depth = 7 which
+is pretty strong.  
 
-TODO implementing...
+It takes a few minutes per turn which you may still feel quite slow.
+It is still going through many possible plies recursively.
+
+Also, you it plays the same opening moves every time as there is no randomness involved.
+I could introduce some randomness when there are multiple best moves available but
+let's not spend too much effort and move on to the next player type which naturally
+makes use of randomness.
+
+## Monte Carlo Tree Search
 
 This player uses [random (monte carlo) simulation of tree search](https://en.wikipedia.org/wiki/Monte_Carlo_tree_search) to find out 
 which move will most likely make the player win.
+
+It does not check all the possible game turns (plies) recursively.
 
 ## Deep-Q Network
 

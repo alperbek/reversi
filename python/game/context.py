@@ -26,7 +26,7 @@ class GameContext(object):
         """
         return None
 
-    def summary(self):
+    def print_summary(self):
         """ Prints the current board state
         """
         pass

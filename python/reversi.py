@@ -97,7 +97,7 @@ class Reversi(GameContext):
                         break
         return flips
 
-    def summary(self):
+    def print_summary(self):
         black_score = self._player_score if self._player_color == BLACK else self._opponent_score
         white_score = self._player_score if self._player_color == WHITE else self._opponent_score
         print(self._board)

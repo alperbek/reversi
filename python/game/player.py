@@ -155,15 +155,23 @@ class MinimaxAlphaBetaPlayer(Player):
         return value
 
 
+def print_horizontal_line(width=40):
+    print('-' * width)
+
+
 def choose_player(message):
     while True:
+        print_horizontal_line()
         print(message)
+        print_horizontal_line()
         print('[1] Random Player')
         print('[2] MiniMax (Naive) Player')
         print('[3] MiniMax (Alpha Beta Pruning) Player')
         print('[4] Manual (Human) Player')
+        print_horizontal_line()
         try:
             number = eval(raw_input('Enter [1-4]: '))
+            print
             if number == 1:
                 return RandomPlayer()
             if number == 2:
