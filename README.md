@@ -10,10 +10,12 @@ python reversi.py
 Just follow the command menu which will ask you to choose a player type for black and white.  
 
 ```bash
+Choose a black player type
 [1] Random Player
-[2] MiniMax Player
-[3] Manual Player (You)
-Enter [1-3]: 
+[2] MiniMax (Naive) Player
+[3] MiniMax (Alpha Beta Pruning) Player
+[4] Manual (Human) Player
+Enter [1-4]: 
 ```
 
 The following sections will explain available player types.
@@ -31,27 +33,28 @@ This player randomly chooses a move from the legal moves.
 
 You can play by entering your move.
 
-```bash
+```
  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 
 ----------------------------------
-0| O | O | O | O | O | O |   |   | 
+0|   |   |   |   |   |   |   |   | 
 ----------------------------------
-1| O | O | O | O |   | @ |   |   | 
+1|   |   |   |   |   |   |   |   | 
 ----------------------------------
-2| O | O | O | O | @ | @ |   |   | 
+2|   |   |   | @ |   |   |   |   | 
 ----------------------------------
-3| O | O | O | O | O |   |   |   | 
+3|   |   |   | @ | @ |   |   |   | 
 ----------------------------------
-4| O | O | @ | O | O | O |   |   | 
+4|   |   |   | @ | O |   |   |   | 
 ----------------------------------
-5| O | O | @ | O | @ | @ | @ |   | 
+5|   |   |   |   |   |   |   |   | 
 ----------------------------------
-6|   | @ | @ | @ | @ | @ |   |   | 
+6|   |   |   |   |   |   |   |   | 
 ----------------------------------
-7| @ |   | @ | @ | @ | O |   |   | 
+7|   |   |   |   |   |   |   |   | 
 ----------------------------------
-Turn: 41 Black: 17 White: 28
-Enter a move row, col: 1,4    <=== enter your move (row,col)
+Black: 4 White: 1
+[20:42:49] Turn: 2 (ManualPlayer)
+Enter a move row, col: 4,2    <=== enter your move (row,col)
 ```
 
 - weak or strong (depends on the mood)
