@@ -1,6 +1,6 @@
 from game.board import GameBoard
 from game.context import GameContext
-from game.player import choose_player
+from game.console import choose_player
 from game.match import simple_match
 import itertools
 
