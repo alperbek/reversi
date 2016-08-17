@@ -1,5 +1,6 @@
 from game.board import GameBoard
 from game.context import GameContext
+from game.state import GameState
 from game.console import choose_player
 from game.match import simple_match
 import itertools
@@ -55,6 +56,7 @@ class Reversi(GameContext):
         self._board = board
         self._player = player
         self._opponent = opponent
+        self._state = GameState(self, board, opponent.get_player())
         self._player_valid_actions = self._calc_valid_actions(player.get_color())
 
     @staticmethod
@@ -79,9 +81,12 @@ class Reversi(GameContext):
     def get_score(self):
         return self._player.get_score()
 
-    def is_winner(self):
-        return not self.is_active() \
-               and self._player.get_score() > self._opponent.get_score()
+    def get_winner(self):
+        if self.is_active():
+            return None
+        if self._player.get_score() > self._opponent.get_score():
+            return self._player.get_player()
+        return self._opponent.get_player()
 
     def apply(self, action):
         if action in self._player_valid_actions:
@@ -95,6 +100,9 @@ class Reversi(GameContext):
             self._opponent.apply(-len(flips)),
             self._player.apply(len(flips) + 1)  # including the given action itself
         )
+
+    def get_state(self):
+        return self._state
 
     def _calc_valid_actions(self, player_color):
         valid_actions = {}
@@ -130,11 +138,6 @@ class Reversi(GameContext):
         print('Black: {} ({})'.format(black.get_score(), black.get_player()))
         print('White: {} ({})'.format(white.get_score(), white.get_player()))
 
-    def __eq__(self, other):
-        return self._board == other._board and self._player == other._player
-
-    def __hash__(self):
-        return hash(self._board)
 
 if __name__ == "__main__":
     simple_match(Reversi.create(

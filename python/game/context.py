@@ -31,6 +31,11 @@ class GameContext(object):
         """
         return None
 
+    def get_state(self):
+        """ Returns the current game state
+        """
+        return None
+
     def print_summary(self):
         """ Prints the current board state
         """
