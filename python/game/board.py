@@ -41,3 +41,9 @@ class GameBoard(object):
             s += '-' * (self._width * 4 + 2)
         return s
 
+    def __eq__(self, other):
+        return self._grid == other._grid
+
+    def __hash__(self):
+        return hash(str(self._grid))
+

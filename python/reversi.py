@@ -79,6 +79,10 @@ class Reversi(GameContext):
     def get_score(self):
         return self._player.get_score()
 
+    def is_winner(self):
+        return not self.is_active() \
+               and self._player.get_score() > self._opponent.get_score()
+
     def apply(self, action):
         if action in self._player_valid_actions:
             flips = self._player_valid_actions[action]
@@ -120,15 +124,17 @@ class Reversi(GameContext):
         return self._find_flips(player_color, cell, dr, dc, flippable)
 
     def print_summary(self):
-        if self._player.is_black():
-            black_score = self._player.get_score()
-            white_score = self._opponent.get_score()
-        else:
-            black_score = self._opponent.get_score()
-            white_score = self._player.get_score()
+        black = self._player if self._player.is_black() else self._opponent
+        white = self._player if self._player.is_white() else self._opponent
         print(self._board)
-        print('Black: {} White: {}'.format(black_score, white_score))
+        print('Black: {} ({})'.format(black.get_score(), black.get_player()))
+        print('White: {} ({})'.format(white.get_score(), white.get_player()))
 
+    def __eq__(self, other):
+        return self._board == other._board and self._player == other._player
+
+    def __hash__(self):
+        return hash(self._board)
 
 if __name__ == "__main__":
     simple_match(Reversi.create(

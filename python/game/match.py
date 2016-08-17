@@ -4,7 +4,7 @@ import time
 def simple_match(context):
     """ A simple implementation of turn-based game match
     """
-    print_message("Game start")
+    print_game_start()
 
     turn = 1
     while context.is_active():
@@ -15,14 +15,11 @@ def simple_match(context):
         print_turn_end(start, action)
         turn += 1
 
-    print_message("Game end")
+    print_game_end(context)
 
 
-def print_message(message, width=40):
-    print('-' * width)
-    print(message)
-    print('-' * width)
-    print
+def print_game_start():
+    print_message("Game start")
 
 
 def print_turn_start(turn, context):
@@ -36,3 +33,17 @@ def print_turn_start(turn, context):
 def print_turn_end(start, action):
     elapsed = time.time() - start
     print('Move: {} Elapsed: {:.2f}s\n'.format(action, elapsed))
+
+
+def print_game_end(context):
+    context.print_summary()
+    print_message("Game end")
+
+
+def print_message(message, width=40):
+    print('-' * width)
+    print(message)
+    print('-' * width)
+    print
+
+

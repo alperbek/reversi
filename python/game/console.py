@@ -6,19 +6,18 @@ from players.mcts import MonteCarloTreeSearchPlayer
 
 def choose_player(message):
     while True:
-        print_horizontal_line()
+        print
         print(message)
         print_horizontal_line()
-        print('[0] Manual (Human) Player')
-        print('[1] Random Player')
-        print('[2] MiniMax (Naive) Player')
-        print('[3] MiniMax (Alpha Beta Pruning) Player')
-        # print('[4] Monte Carlo Tree Search Player')
-        # print('[5] Deep Q Learning Player')
+        print('[1] Manual (Human) Player')
+        print('[2] Random Player')
+        print('[3] MiniMax (Naive) Player')
+        print('[4] MiniMax (Alpha Beta Pruning) Player')
+        print('[5] Monte Carlo Tree Search Player')
+        # print('[6] Deep Q Learning Player')
         print_horizontal_line()
         try:
             number = eval(raw_input('Enter [1-6]: '))
-            print
             if number == 1:
                 return ManualPlayer()
             if number == 2:

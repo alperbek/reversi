@@ -102,8 +102,11 @@ which move will most likely make the player win.
 
 It does not check all the possible game turns (plies) recursively.  
 It randomly chose a path till the end to find out the ultimate outcome (win/lose).
-This process is repeated within a time frame give (say 5 seconds).
+When all immediate child nodes are explored, it uses UCT (Upper Confidence Bound 1 applied to trees) to exploit the experience.
+This process is repeated within a time frame give (say max seconds = 5).
 Then, it decides which move is most likely to make the player a winner.
+
+This player learns from the experience as it plays but it forgets everything once the game is over.
 
 ## Deep-Q Network
 

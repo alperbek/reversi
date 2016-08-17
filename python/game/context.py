@@ -21,6 +21,11 @@ class GameContext(object):
         """
         return -1
 
+    def is_winner(self):
+        """ Returns True if the current player has won the game
+        """
+        return False
+
     def apply(self, action):
         """ Returns a new game context (the current context copy + action applied)
         """
