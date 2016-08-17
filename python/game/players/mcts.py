@@ -22,8 +22,8 @@ class StateInfoMap(object):
     def exists(self, state):
         return state in self._states
 
-    def has_explored(self, states):
-        return all(self.exists(state) for state in states)
+    def get_unexplored(self, states):
+        return [state for state in states if not self.exists(state)]
 
     def update_all(self, states, won):
         for state in states:
@@ -65,6 +65,21 @@ class StateInfoMap(object):
         return best_state
 
     def get_best_action(self, context, actions):
+        ret1 = (action1, win_ratio1, wins1, plays1) = self.get_action_by_visits(context, actions)
+        ret2 = (action2, win_ratio2, wins2, plays2) = self.get_action_by_win_ratio(context, actions)
+        if plays1 == plays2:
+            return ret1 if win_ratio1 > win_ratio2 else ret2
+        else:
+            return ret1 if plays1 > plays2 else ret2
+
+    def get_action_by_visits(self, context, actions):
+        state_action_pairs = [(context.apply(action).get_state(), action) for action in actions]
+        plays, state, action = max((self.get_plays(state), state, action)
+                                   for state, action in state_action_pairs)
+        wins, win_ratio = self.get_wins(state), self.get_win_ratio(state)
+        return action, win_ratio, wins, plays
+
+    def get_action_by_win_ratio(self, context, actions):
         state_action_pairs = [(context.apply(action).get_state(), action) for action in actions]
         win_ratio, state, action = max((self.get_win_ratio(state), state, action)
                                        for state, action in state_action_pairs)
@@ -101,12 +116,15 @@ class MonteCarloTreeSearchPlayer(Player):
             contexts = [context.apply(action) for action in context.get_valid_actions()]
             if len(contexts) > 0:
                 states = [context.get_state() for context in contexts]
-                if self._state_info_map.has_explored(states):
+                unexplored = self._state_info_map.get_unexplored(states)
+                if len(unexplored) == 0:
                     # exploitation
-                    context = self._state_info_map.get_best_state(states).get_context()
+                    best_state = self._state_info_map.get_best_state(states)
+                    context = best_state.get_context()
                 else:
                     # exploration
-                    context = random.choice(contexts)
+                    random_state = random.choice(unexplored)
+                    context = random_state.get_context()
             else:
                 context = context.apply(None)  # pass to the opponent
 

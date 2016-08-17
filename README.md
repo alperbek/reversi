@@ -9,13 +9,16 @@ python reversi.py
 
 Just follow the command menu which will ask you to choose a player type for black and white.  
 
-```sell
+```shell
 Choose a black player type
-[1] Random Player
-[2] MiniMax (Naive) Player
-[3] MiniMax (Alpha Beta Pruning) Player
-[4] Manual (Human) Player
-Enter [1-4]: 
+----------------------------------------
+[1] Manual (Human) Player
+[2] Random Player
+[3] MiniMax (Naive) Player
+[4] MiniMax (Alpha Beta Pruning) Player
+[5] Monte Carlo Tree Search Player
+----------------------------------------
+Enter [1-6]: 
 ```
 
 The following sections will explain available player types.
@@ -34,27 +37,28 @@ This player randomly chooses a move from the legal moves.
 You can play by entering your move.
 
 ```shell
-[21:59:56] Turn: 6 (ManualPlayer)
+[20:47:26] Turn: 2 (ManualPlayer)
  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 
 ----------------------------------
 0|   |   |   |   |   |   |   |   | 
 ----------------------------------
 1|   |   |   |   |   |   |   |   | 
 ----------------------------------
-2|   |   |   |   |   | @ |   | @ | 
+2|   |   |   |   |   |   |   |   | 
 ----------------------------------
-3|   |   |   | O | O | O | @ |   | 
+3|   |   |   | O | @ |   |   |   | 
 ----------------------------------
-4|   |   |   | @ | @ | @ |   |   | 
+4|   |   |   | @ | @ |   |   |   | 
 ----------------------------------
-5|   |   |   |   |   |   |   |   | 
+5|   |   |   |   | @ |   |   |   | 
 ----------------------------------
 6|   |   |   |   |   |   |   |   | 
 ----------------------------------
 7|   |   |   |   |   |   |   |   | 
 ----------------------------------
-Black: 6 White: 3
-Enter a move row, col: 5,2   <= enter your move!
+Black: 4 (MonteCarloTreeSearchPlayer)
+White: 1 (ManualPlayer)
+Enter a move row, col: 5,3   <= enter your move!
 ```
 
 - weak or strong (depends on the mood)
