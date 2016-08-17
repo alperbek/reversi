@@ -9,7 +9,7 @@ python reversi.py
 
 Just follow the command menu which will ask you to choose a player type for black and white.  
 
-```shell
+```
 Choose a black player type
 ----------------------------------------
 [1] Manual (Human) Player
@@ -36,7 +36,7 @@ This player randomly chooses a move from the legal moves.
 
 You can play by entering your move.
 
-```shell
+```
 [20:47:26] Turn: 2 (ManualPlayer)
  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 
 ----------------------------------
