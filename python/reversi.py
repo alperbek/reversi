@@ -22,24 +22,50 @@ class ReversiBoard(GameBoard):
         GameBoard.__init__(self, grid, {BLACK: '@', WHITE: 'O', EMPTY: ' '})
 
 
+class ReversiPlayer(object):
+    def __init__(self, player, color, score):
+        self._player = player
+        self._color = color
+        self._score = score
+
+    def get_player(self):
+        return self._player
+
+    def get_color(self):
+        return self._color
+
+    def is_black(self):
+        return self._color == BLACK
+
+    def is_white(self):
+        return self._color == WHITE
+
+    def get_score(self):
+        return self._score
+
+    def apply(self, score_change):
+        return ReversiPlayer(self._player, self._color, self._score + score_change)
+
+    def __eq__(self, other):
+        return self.get_player() == other.get_player()
+
+
 class Reversi(GameContext):
-    def __init__(self, board, player, player_color, player_score, opponent, opponent_color, opponent_score):
+    def __init__(self, board, player, opponent):
         self._board = board
         self._player = player
-        self._player_color = player_color
-        self._player_score = player_score
         self._opponent = opponent
-        self._opponent_color = opponent_color
-        self._opponent_score = opponent_score
-        self._player_valid_actions = self._calc_valid_actions(player)
-        self._opponent_valid_actions = self._calc_valid_actions(opponent)
+        self._player_valid_actions = self._calc_valid_actions(player.get_color())
 
     @staticmethod
     def create(black_player, white_player):
-        return Reversi(ReversiBoard(), black_player, BLACK, 2, white_player, WHITE, 2)
+        return Reversi(ReversiBoard(),
+                       ReversiPlayer(black_player, BLACK, 2),
+                       ReversiPlayer(white_player, WHITE, 2))
 
     def is_active(self):
-        return len(self._player_valid_actions) > 0 or len(self._opponent_valid_actions) > 0
+        return len(self._player_valid_actions) > 0 or \
+               len(self._calc_valid_actions(self._opponent.get_color())) > 0  # check if opponent still has any move
 
     def get_valid_actions(self):
         return self._player_valid_actions.keys()
@@ -47,59 +73,59 @@ class Reversi(GameContext):
     def _is_valid_action(self, action):
         return action in self._player_valid_actions
 
-    def get_score(self):
-        return self._player_score
-
     def get_player(self):
-        return self._player
+        return self._player.get_player()
+
+    def get_score(self):
+        return self._player.get_score()
 
     def apply(self, action):
         if action in self._player_valid_actions:
             flips = self._player_valid_actions[action]
-            board = self._board.apply([(self._player_color, flip) for flip in [action] + flips])
+            board = self._board.apply([(self._player.get_color(), flip) for flip in [action] + flips])
         else:
             flips = []
             board = self._board
         return Reversi(
             board,
-            self._opponent,
-            self._opponent_color,
-            self._opponent_score - len(flips),
-            self._player,
-            self._player_color,
-            self._player_score + len(flips) + 1  # including the given action itself
+            self._opponent.apply(-len(flips)),
+            self._player.apply(len(flips) + 1)  # including the given action itself
         )
 
-    def _calc_valid_actions(self, player):
-        action_flips = {cell: self._calc_flips(player, cell)
-                        for cell in itertools.product(range(BOARD_SIZE), range(BOARD_SIZE))
-                        if self._board.is_empty(cell)}
-        return {action: flips for action, flips in action_flips.items() if len(flips) > 0}
+    def _calc_valid_actions(self, player_color):
+        valid_actions = {}
+        for cell in itertools.product(range(BOARD_SIZE), range(BOARD_SIZE)):
+            if not self._board.is_empty(cell):
+                continue
+            flips = self._calc_flips(player_color, cell)
+            if len(flips) > 0:
+                valid_actions[cell] = flips
+        return valid_actions
 
-    def _calc_flips(self, player, (row, col)):
-        player_color = self._player_color if player == self._player else self._opponent_color
-        opponent_color = self._opponent_color if player == self._player else self._player_color
+    def _calc_flips(self, player_color, cell):
         flips = []
-        for dr in range(-1, 2):
-            for dc in range(-1, 2):
-                if (dr, dc) == (0, 0):
-                    continue
-                flippable = []
-                cell = (row + dr, col + dc)
-                while self._board.in_bounds(cell):
-                    cell_color = self._board.get_value(cell)
-                    if cell_color == opponent_color:
-                        flippable.append(cell)
-                        cell = (cell[0]+dr, cell[1]+dc)
-                    else:
-                        if cell_color == player_color:
-                            flips.extend(flippable)
-                        break
+        for dr, dc in itertools.product(range(-1, 2), range(-1, 2)):
+            if (dr, dc) == (0, 0):
+                continue
+            flips.extend(self._find_flips(player_color, cell, dr, dc, []))
         return flips
 
+    def _find_flips(self, player_color, prev_cell, dr, dc, flippable):
+        cell = prev_cell[0] + dr, prev_cell[1] + dc
+        if not self._board.in_bounds(cell) or self._board.is_empty(cell):
+            return []
+        if self._board.get_value(cell) == player_color:
+            return flippable
+        flippable.append(cell)  # not empty and not player's color ==> opponent color
+        return self._find_flips(player_color, cell, dr, dc, flippable)
+
     def print_summary(self):
-        black_score = self._player_score if self._player_color == BLACK else self._opponent_score
-        white_score = self._player_score if self._player_color == WHITE else self._opponent_score
+        if self._player.is_black():
+            black_score = self._player.get_score()
+            white_score = self._opponent.get_score()
+        else:
+            black_score = self._opponent.get_score()
+            white_score = self._player.get_score()
         print(self._board)
         print('Black: {} White: {}'.format(black_score, white_score))
 

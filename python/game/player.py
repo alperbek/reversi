@@ -1,4 +1,5 @@
 import random
+#import time
 
 INFINITY = float('Inf')
 
@@ -155,6 +156,30 @@ class MinimaxAlphaBetaPlayer(Player):
         return value
 
 
+# TODO work in progress
+# class MonteCarloTreeSearchPlayer(Player):
+#    def __init__(self, max_seconds):
+#        self._max_seconds = max_seconds
+#
+#    def decide(self, context):
+#        start = time.time()
+#        while time.time() - start < self._max_seconds:
+#            action = self._select(context)
+#            result = self._simulate(context.apply(action))
+#            self._back_prop(action, result)
+#
+#        return self.best_action(root)
+#
+#    def _select(self, context):
+#        return self, context
+#
+#    def _simulate(self, context):
+#        return self, context
+#
+#    def _back_prop(self, action, result):
+#        pass
+
+
 def print_horizontal_line(width=40):
     print('-' * width)
 
@@ -164,14 +189,18 @@ def choose_player(message):
         print_horizontal_line()
         print(message)
         print_horizontal_line()
+        print('[0] Manual (Human) Player')
         print('[1] Random Player')
         print('[2] MiniMax (Naive) Player')
         print('[3] MiniMax (Alpha Beta Pruning) Player')
-        print('[4] Manual (Human) Player')
+        # print('[4] Monte Carlo Tree Search Player')
+        # print('[5] Deep Q Learning Player')
         print_horizontal_line()
         try:
-            number = eval(raw_input('Enter [1-4]: '))
+            number = eval(raw_input('Enter [0-5]: '))
             print
+            if number == 0:
+                return ManualPlayer()
             if number == 1:
                 return RandomPlayer()
             if number == 2:
@@ -180,7 +209,10 @@ def choose_player(message):
             if number == 3:
                 number = eval(raw_input('Max Depth: '))
                 return MinimaxAlphaBetaPlayer(number)
-            if number == 4:
-                return ManualPlayer()
+            # if number == 4:
+            #    number = eval(raw_input('Max Seconds: '))
+            #    return MonteCarloTreeSearchPlayer(number)
+            # if number == 5:
+            #    raise NotImplementedError("Deep Q Learning Player Not Implemented")
         except Exception as e:
             print(e)

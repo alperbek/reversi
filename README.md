@@ -100,7 +100,10 @@ makes use of randomness.
 This player uses [random (monte carlo) simulation of tree search](https://en.wikipedia.org/wiki/Monte_Carlo_tree_search) to find out 
 which move will most likely make the player win.
 
-It does not check all the possible game turns (plies) recursively.
+It does not check all the possible game turns (plies) recursively.  
+It randomly chose a path till the end to find out the ultimate outcome (win/lose).
+This process is repeated within a time frame give (say 5 seconds).
+Then, it decides which move is most likely to make the player a winner.
 
 ## Deep-Q Network
 

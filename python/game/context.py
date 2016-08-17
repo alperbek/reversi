@@ -11,15 +11,15 @@ class GameContext(object):
         """
         return []
 
-    def get_score(self):
-        """ Returns the current score of the player
-        """
-        return -1
-
     def get_player(self):
         """ Returns the current player
         """
         return None
+
+    def get_score(self):
+        """ Returns the current score of the player
+        """
+        return -1
 
     def apply(self, action):
         """ Returns a new game context (the current context copy + action applied)
