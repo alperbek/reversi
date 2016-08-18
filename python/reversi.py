@@ -1,43 +1,20 @@
 from game.board import GameBoard
 from game.context import GameContext
+from game.player import GamePlayer
 from game.state import GameState
 from game.console import choose_agent
 from game.match import simple_match
+from enum import Enum
 import itertools
 
-# constants
-EMPTY = 0
-BLACK = -1
-WHITE = 1
-BOARD_SIZE = 8
 
+class Disc(Enum):
+    EMPTY = 0
+    BLACK = -1
+    WHITE = 1
 
-class ReversiPlayer(object):
-    def __init__(self, agent, color, score):
-        self._agent = agent
-        self._color = color
-        self._score = score
-
-    def get_agent(self):
-        return self._agent
-
-    def get_color(self):
-        return self._color
-
-    def is_black(self):
-        return self._color == BLACK
-
-    def is_white(self):
-        return self._color == WHITE
-
-    def get_score(self):
-        return self._score
-
-    def apply(self, score_change):
-        return ReversiPlayer(self._agent, self._color, self._score + score_change)
-
-    def __eq__(self, other):
-        return self.get_agent() == other.get_agent()
+    def __str__(self):
+        return self.name
 
 
 class Reversi(GameContext):
@@ -49,16 +26,17 @@ class Reversi(GameContext):
         self._player_valid_actions = self._calc_valid_actions(player)
 
     @staticmethod
-    def create(black_player, white_player):
-        row, col = BOARD_SIZE/2-1, BOARD_SIZE/2-1
-        grid = [[EMPTY for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
-        grid[row][col] = WHITE
-        grid[row][col+1] = BLACK
-        grid[row+1][col] = BLACK
-        grid[row+1][col+1] = WHITE
-        return Reversi(GameBoard(grid, EMPTY, {EMPTY: ' ', BLACK: '@', WHITE: 'O'}),
-                       ReversiPlayer(black_player, BLACK, 2),
-                       ReversiPlayer(white_player, WHITE, 2))
+    def create(black_player, white_player, board_size=8):
+        row, col = board_size/2-1, board_size/2-1
+        grid = [[Disc.EMPTY for _ in range(board_size)] for _ in range(board_size)]
+        grid[row][col] = Disc.WHITE
+        grid[row][col+1] = Disc.BLACK
+        grid[row+1][col] = Disc.BLACK
+        grid[row+1][col+1] = Disc.WHITE
+        return Reversi(GameBoard(grid, Disc.EMPTY,
+                                 {Disc.EMPTY: ' ', Disc.BLACK: '@', Disc.WHITE: 'O'}),
+                       GamePlayer(black_player, Disc.BLACK, 2),
+                       GamePlayer(white_player, Disc.WHITE, 2))
 
     def is_active(self):
         return len(self._player_valid_actions) > 0 or \
@@ -86,7 +64,7 @@ class Reversi(GameContext):
     def apply(self, action):
         if action in self._player_valid_actions:
             flips = self._player_valid_actions[action]
-            board = self._board.apply([(self._player.get_color(), flip) for flip in [action] + flips])
+            board = self._board.apply([(self._player.get_kind(), flip) for flip in [action] + flips])
         else:
             flips = []
             board = self._board
@@ -99,40 +77,42 @@ class Reversi(GameContext):
     def get_state(self):
         return self._state
 
+    def print_summary(self):
+        player_kind = self._player.get_kind()
+        black = self._player if player_kind == Disc.BLACK else self._opponent
+        white = self._player if player_kind == Disc.WHITE else self._opponent
+        print(self._board)
+        print('{}'.format(black))
+        print('{}'.format(white))
+
     def _calc_valid_actions(self, player):
-        player_color = player.get_color()
+        player_kind = player.get_kind()
         valid_actions = {}
-        for cell in itertools.product(range(BOARD_SIZE), range(BOARD_SIZE)):
+        for cell in itertools.product(range(self._board.get_height()),
+                                      range(self._board.get_width())):
             if not self._board.is_empty(cell):
                 continue
-            flips = self._calc_flips(player_color, cell)
+            flips = self._calc_flips(player_kind, cell)
             if len(flips) > 0:
                 valid_actions[cell] = flips
         return valid_actions
 
-    def _calc_flips(self, player_color, cell):
+    def _calc_flips(self, player_kind, cell):
         flips = []
         for dr, dc in itertools.product(range(-1, 2), range(-1, 2)):
             if (dr, dc) == (0, 0):
                 continue
-            flips.extend(self._find_flips(player_color, cell, dr, dc, []))
+            flips.extend(self._find_flips(player_kind, cell, dr, dc, []))
         return flips
 
-    def _find_flips(self, player_color, prev_cell, dr, dc, flippable):
+    def _find_flips(self, player_kind, prev_cell, dr, dc, flippable):
         cell = prev_cell[0] + dr, prev_cell[1] + dc
         if not self._board.in_bounds(cell) or self._board.is_empty(cell):
             return []
-        if self._board.get_value(cell) == player_color:
+        if self._board.get_value(cell) == player_kind:
             return flippable
-        flippable.append(cell)  # not empty and not player's color ==> opponent color
-        return self._find_flips(player_color, cell, dr, dc, flippable)
-
-    def print_summary(self):
-        black = self._player if self._player.is_black() else self._opponent
-        white = self._player if self._player.is_white() else self._opponent
-        print(self._board)
-        print('Black: {} ({})'.format(black.get_score(), black.get_agent()))
-        print('White: {} ({})'.format(white.get_score(), white.get_agent()))
+        flippable.append(cell)  # not empty and not player's kind ==> opponent kind
+        return self._find_flips(player_kind, cell, dr, dc, flippable)
 
 
 if __name__ == "__main__":

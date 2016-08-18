@@ -10,6 +10,12 @@ class GameBoard(object):
         self._empty = empty
         self._mapping = mapping
 
+    def get_height(self):
+        return self._height
+
+    def get_width(self):
+        return self._width
+
     def in_bounds(self, (row, col)):
         return 0 <= row < self._height and 0 <= col < self._width
 

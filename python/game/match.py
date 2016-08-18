@@ -25,7 +25,8 @@ def print_game_start():
 def print_turn_start(turn, context):
     start = time.time()
     agent = context.get_agent()
-    print('[{}] Turn: {} ({})'.format(time.strftime("%H:%M:%S", time.localtime(start)), turn, agent))
+    print('[{}] Turn: {} ({})'.format(
+        time.strftime("%H:%M:%S", time.localtime(start)), turn, agent))
     context.print_summary()
     return start
 
