@@ -23,89 +23,89 @@ def arg_max(seq, fn):
 
 
 class MinimaxAgent(Agent):
-    """ Naive minimax player
+    """ Naive minimax agent
 
-    Minimax player iterate though all the valid moves to find the best (highest value) move.
+    Minimax agent iterate though all the valid moves to find the best (highest value) move.
     For each, it needs to evaluate all the possible following moves by the opponent
-    who tries to choose the best move which is the worst move for this player.
+    who tries to choose the best move which is the worst move for this agent.
     This traversing of possible move chains will be continued until we reach the max depth
-    or there is no more move for both players.
+    or there is no more move for both agents.
     """
     def __init__(self, max_depth):
         self._max_depth = max_depth
 
-    def decide(self, context):
-        return arg_max(context.valid_actions,
-                       lambda action: self._min_play(context.apply(action), 1))
+    def decide(self, env):
+        return arg_max(env.valid_actions,
+                       lambda action: self._min_play(env.apply(action), 1))
 
-    def _max_play(self, context, depth):
-        if not context.is_active or depth > self._max_depth:
-            return context.score
-        return val_max(context.valid_actions,
-                       lambda action: self._min_play(context.apply(action), depth+1))
+    def _max_play(self, env, depth):
+        if not env.is_active or depth > self._max_depth:
+            return env.score
+        return val_max(env.valid_actions,
+                       lambda action: self._min_play(env.apply(action), depth+1))
 
-    def _min_play(self, context, depth):
-        if not context.is_active or depth > self._max_depth:
-            return context.score
-        return val_min(context.valid_actions,
-                       lambda action: self._max_play(context.apply(action), depth+1))
+    def _min_play(self, env, depth):
+        if not env.is_active or depth > self._max_depth:
+            return env.score
+        return val_min(env.valid_actions,
+                       lambda action: self._max_play(env.apply(action), depth+1))
 
 
 class MinimaxABAgent(Agent):
-    """ An improved version of minimax player.
+    """ An improved version of minimax agent.
 
-    The player (=max player) will choose the best of the worst moves chosen by the
-    min player, and the opponent (=min player) will choose the worst of the best
-    moves chosen by the max player.
+    The agent (=max agent) will choose the best of the worst moves chosen by the
+    min agent, and the opponent (=min agent) will choose the worst of the best
+    moves chosen by the max agent.
 
-    The max player can stop traversing child nodes if the current node value is already
+    The max agent can stop traversing child nodes if the current node value is already
     bigger than other sibling nodes (that were evaluated before that node) as the min
-    player will not choose the node anyway.
+    agent will not choose the node anyway.
 
-    The min player can stop traversing child nodes if the current node value is already
+    The min agent can stop traversing child nodes if the current node value is already
     smaller than other sibling nodes (that were evaluated before that node) as the max
-    player will not choose the node anyway.
+    agent will not choose the node anyway.
 
-    Alpha is the best of the worst values chosen by the min player from the child nodes.
-    If the min player finds that the current node value is less than the alpha, it stops.
+    Alpha is the best of the worst values chosen by the min agent from the child nodes.
+    If the min agent finds that the current node value is less than the alpha, it stops.
 
-    Beta is the worst of the best values chosen by the max player from the child nodes.
-    If the max player finds that the current node value is more than the beta, it stops.
+    Beta is the worst of the best values chosen by the max agent from the child nodes.
+    If the max agent finds that the current node value is more than the beta, it stops.
     """
     def __init__(self, max_depth):
         self._max_depth = max_depth
 
-    def decide(self, context):
-        return arg_max(context.valid_actions,
-                       lambda action: self._min_play(context.apply(action),
+    def decide(self, env):
+        return arg_max(env.valid_actions,
+                       lambda action: self._min_play(env.apply(action),
                                                      -INFINITY, INFINITY, 1))
 
-    def _max_play(self, context, alpha, beta, depth):
-        if not context.is_active or depth > self._max_depth:
-            return context.score
-        actions = context.valid_actions
+    def _max_play(self, env, alpha, beta, depth):
+        if not env.is_active or depth > self._max_depth:
+            return env.score
+        actions = env.valid_actions
         if len(actions) == 0:
-            return self._min_play(context.apply(None),
+            return self._min_play(env.apply(None),
                                   alpha, beta, depth)
         value = -INFINITY
         for action in actions:
-            value = max(value, self._min_play(context.apply(action),
+            value = max(value, self._min_play(env.apply(action),
                                               alpha, beta, depth+1))
             if value >= beta:
                 return value
             alpha = max(alpha, value)
         return value
 
-    def _min_play(self, context, alpha, beta, depth):
-        if not context.is_active or depth > self._max_depth:
-            return context.score
-        actions = context.valid_actions
+    def _min_play(self, env, alpha, beta, depth):
+        if not env.is_active or depth > self._max_depth:
+            return env.score
+        actions = env.valid_actions
         if len(actions) == 0:
-            return self._max_play(context.apply(None),
+            return self._max_play(env.apply(None),
                                   alpha, beta, depth)
         value = INFINITY
         for action in actions:
-            value = min(value, self._max_play(context.apply(action),
+            value = min(value, self._max_play(env.apply(action),
                                               alpha, beta, depth+1))
             if value <= alpha:
                 return value

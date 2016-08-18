@@ -1,5 +1,5 @@
 class Agent(object):
-    def decide(self, context):
+    def decide(self, env):
         """ Returns an action to take (or None to skip)
         """
         return None

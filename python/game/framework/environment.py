@@ -32,7 +32,7 @@ class Environment(object):
         return None
 
     def apply(self, action):
-        """ Returns a new game context (the current context copy + action applied)
+        """ Returns a new game env (the current env copy + action applied)
         """
         return None
 

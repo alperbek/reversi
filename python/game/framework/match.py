@@ -1,32 +1,32 @@
 import time
 
 
-def simple_match(context):
+def simple_match(env):
     """ A simple implementation of turn-based game match
     """
     print_game_start()
 
     turn = 1
-    while context.is_active:
-        start = print_turn_start(turn, context)
-        action = context.agent.decide(context)
-        context = context.apply(action)
+    while env.is_active:
+        start = print_turn_start(turn, env)
+        action = env.agent.decide(env)
+        env = env.apply(action)
         print_turn_end(start, action)
         turn += 1
 
-    print_game_end(context)
+    print_game_end(env)
 
 
 def print_game_start():
     print_message("Game start")
 
 
-def print_turn_start(turn, context):
+def print_turn_start(turn, env):
     start = time.time()
-    agent = context.agent
+    agent = env.agent
     print('[{}] Turn: {} ({})'.format(
         time.strftime("%H:%M:%S", time.localtime(start)), turn, agent))
-    context.print_summary()
+    env.print_summary()
     return start
 
 
@@ -35,8 +35,8 @@ def print_turn_end(start, action):
     print('Move: {} Elapsed: {:.2f}s\n'.format(action, elapsed))
 
 
-def print_game_end(context):
-    context.print_summary()
+def print_game_end(env):
+    env.print_summary()
     print_message("Game end")
 
 

@@ -1,14 +1,14 @@
 class State(object):
-    def __init__(self, context, board, agent):
-        self._context = context
+    def __init__(self, env, board, agent):
+        self._env = env
         self._board = board
         self._agent = agent
 
     @property
-    def context(self):
-        """ Related context
+    def env(self):
+        """ Related env
         """
-        return self._context
+        return self._env
 
     @property
     def board(self):
