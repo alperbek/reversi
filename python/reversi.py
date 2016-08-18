@@ -6,21 +6,10 @@ from game.match import simple_match
 import itertools
 
 # constants
-EMPTY = -1
-BLACK = 0
+EMPTY = 0
+BLACK = -1
 WHITE = 1
 BOARD_SIZE = 8
-
-
-class ReversiBoard(GameBoard):
-    def __init__(self):
-        row, col = BOARD_SIZE/2-1, BOARD_SIZE/2-1
-        grid = [[EMPTY for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
-        grid[row][col] = WHITE
-        grid[row][col+1] = BLACK
-        grid[row+1][col] = BLACK
-        grid[row+1][col+1] = WHITE
-        GameBoard.__init__(self, grid, {BLACK: '@', WHITE: 'O', EMPTY: ' '})
 
 
 class ReversiPlayer(object):
@@ -57,17 +46,23 @@ class Reversi(GameContext):
         self._player = player
         self._opponent = opponent
         self._state = GameState(self, board, opponent.get_agent())
-        self._player_valid_actions = self._calc_valid_actions(player.get_color())
+        self._player_valid_actions = self._calc_valid_actions(player)
 
     @staticmethod
     def create(black_player, white_player):
-        return Reversi(ReversiBoard(),
+        row, col = BOARD_SIZE/2-1, BOARD_SIZE/2-1
+        grid = [[EMPTY for _ in range(BOARD_SIZE)] for _ in range(BOARD_SIZE)]
+        grid[row][col] = WHITE
+        grid[row][col+1] = BLACK
+        grid[row+1][col] = BLACK
+        grid[row+1][col+1] = WHITE
+        return Reversi(GameBoard(grid, EMPTY, {EMPTY: ' ', BLACK: '@', WHITE: 'O'}),
                        ReversiPlayer(black_player, BLACK, 2),
                        ReversiPlayer(white_player, WHITE, 2))
 
     def is_active(self):
         return len(self._player_valid_actions) > 0 or \
-               len(self._calc_valid_actions(self._opponent.get_color())) > 0  # check if opponent still has any move
+               len(self._calc_valid_actions(self._opponent)) > 0  # check if opponent still has any move
 
     def get_valid_actions(self):
         return self._player_valid_actions.keys()
@@ -104,7 +99,8 @@ class Reversi(GameContext):
     def get_state(self):
         return self._state
 
-    def _calc_valid_actions(self, player_color):
+    def _calc_valid_actions(self, player):
+        player_color = player.get_color()
         valid_actions = {}
         for cell in itertools.product(range(BOARD_SIZE), range(BOARD_SIZE)):
             if not self._board.is_empty(cell):

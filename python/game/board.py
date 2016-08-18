@@ -3,30 +3,28 @@ import os
 
 
 class GameBoard(object):
-    def __init__(self, grid, mapping):
+    def __init__(self, grid, empty, mapping):
         self._grid = grid
         self._width = len(grid[0])
         self._height = len(grid)
+        self._empty = empty
         self._mapping = mapping
 
     def in_bounds(self, (row, col)):
         return 0 <= row < self._height and 0 <= col < self._width
 
-    def set_value(self, (row, col), val):
-        self._grid[row][col] = val
-
     def get_value(self, (row, col)):
         return self._grid[row][col]
 
     def is_empty(self, (row, col)):
-        return self.get_value((row, col)) == -1
+        return self.get_value((row, col)) == self._empty
 
     def apply(self, actions):
         grid = copy.deepcopy(self._grid)
         for action in actions:
             row, col = action[1]
             grid[row][col] = action[0]
-        return GameBoard(grid, self._mapping)
+        return GameBoard(grid, self._empty, self._mapping)
 
     def __str__(self):
         s = ' | '
