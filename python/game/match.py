@@ -42,6 +42,7 @@ def print_game_end(context):
 
 
 def print_message(message, width=40):
+    print
     print('-' * width)
     print(message)
     print('-' * width)

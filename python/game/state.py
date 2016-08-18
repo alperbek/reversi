@@ -1,8 +1,8 @@
 class GameState(object):
-    def __init__(self, context, board, player):
+    def __init__(self, context, board, agent):
         self._context = context
         self._board = board
-        self._player = player
+        self._agent = agent
 
     def get_context(self):
         """ Related context
@@ -14,13 +14,13 @@ class GameState(object):
         """
         return self._board
 
-    def get_player(self):
+    def get_agent(self):
         """ This player caused this state
         """
-        return self._player
+        return self._agent
 
     def __eq__(self, other):
-        return self._board == other.get_board() and self._player == other.get_agent()
+        return self._board == other.get_board() and self._agent == other.get_agent()
 
     def __hash__(self):
         return hash(self._board)

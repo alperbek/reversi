@@ -112,7 +112,8 @@ class MCTSAgent(Agent):
         visited = set()
 
         while context.is_active():
-            # selection of action (aka context)
+            agent = context.get_agent()
+            # selection
             contexts = [context.apply(action) for action in context.get_valid_actions()]
             if len(contexts) > 0:
                 states = [context.get_state() for context in contexts]
@@ -129,12 +130,13 @@ class MCTSAgent(Agent):
                 context = context.apply(None)  # pass to the opponent
 
             # expansion of tree / node
-            state = context.get_state()
-            visited.add(state)
-            if expand:
-                if not self._state_info_map.exists(state):
-                    expand = False
-                    self._state_info_map.add(state)
+            if agent == self:
+                state = context.get_state()
+                visited.add(state)
+                if expand:
+                    if not self._state_info_map.exists(state):
+                        expand = False
+                        self._state_info_map.add(state)
 
         # back propagation of wins / plays
         self._state_info_map.update_all(visited, context.get_winner() == self)
