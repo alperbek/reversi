@@ -1,11 +1,12 @@
-from game.board import Board
-from game.environment import Environment
-from game.player import Player
-from game.state import State
-from game.console import choose_agent
-from game.match import simple_match
-from enum import Enum
 import itertools
+
+from enum import Enum
+from game.framework.board import Board
+from game.framework.environment import Environment
+from game.framework.match import simple_match
+from game.framework.player import Player
+from game.framework.state import State
+from game.console import choose_agent
 
 
 class Disc(Enum):
