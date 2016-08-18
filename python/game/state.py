@@ -20,7 +20,7 @@ class GameState(object):
         return self._player
 
     def __eq__(self, other):
-        return self._board == other.get_board() and self._player == other.get_player()
+        return self._board == other.get_board() and self._player == other.get_agent()
 
     def __hash__(self):
         return hash(self._board)

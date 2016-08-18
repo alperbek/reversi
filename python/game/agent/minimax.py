@@ -1,4 +1,4 @@
-from player import Player
+from agent import Agent
 
 INFINITY = float('Inf')
 
@@ -22,7 +22,7 @@ def arg_max(seq, fn):
     return seq[values.index(max(values))]
 
 
-class MinimaxPlayer(Player):
+class MinimaxAgent(Agent):
     """ Naive minimax player
 
     Minimax player iterate though all the valid moves to find the best (highest value) move.
@@ -51,7 +51,7 @@ class MinimaxPlayer(Player):
                        lambda action: self._max_play(context.apply(action), depth+1))
 
 
-class MinimaxAlphaBetaPlayer(Player):
+class MinimaxABAgent(Agent):
     """ An improved version of minimax player.
 
     The player (=max player) will choose the best of the worst moves chosen by the

@@ -1,4 +1,4 @@
-from player import Player
+from agent import Agent
 import time
 import random
 from math import log, sqrt
@@ -87,7 +87,7 @@ class StateInfoMap(object):
         return action, win_ratio, wins, plays
 
 
-class MonteCarloTreeSearchPlayer(Player):
+class MCTSAgent(Agent):
     def __init__(self, max_seconds):
         self._max_seconds = max_seconds
         self._state_info_map = StateInfoMap()

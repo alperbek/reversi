@@ -1,4 +1,4 @@
-class Player(object):
+class Agent(object):
     def decide(self, context):
         """ Returns an action to take (or None to skip)
         """

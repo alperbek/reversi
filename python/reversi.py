@@ -1,7 +1,7 @@
 from game.board import GameBoard
 from game.context import GameContext
 from game.state import GameState
-from game.console import choose_player
+from game.console import choose_agent
 from game.match import simple_match
 import itertools
 
@@ -24,13 +24,13 @@ class ReversiBoard(GameBoard):
 
 
 class ReversiPlayer(object):
-    def __init__(self, player, color, score):
-        self._player = player
+    def __init__(self, agent, color, score):
+        self._agent = agent
         self._color = color
         self._score = score
 
-    def get_player(self):
-        return self._player
+    def get_agent(self):
+        return self._agent
 
     def get_color(self):
         return self._color
@@ -45,10 +45,10 @@ class ReversiPlayer(object):
         return self._score
 
     def apply(self, score_change):
-        return ReversiPlayer(self._player, self._color, self._score + score_change)
+        return ReversiPlayer(self._agent, self._color, self._score + score_change)
 
     def __eq__(self, other):
-        return self.get_player() == other.get_player()
+        return self.get_agent() == other.get_agent()
 
 
 class Reversi(GameContext):
@@ -56,7 +56,7 @@ class Reversi(GameContext):
         self._board = board
         self._player = player
         self._opponent = opponent
-        self._state = GameState(self, board, opponent.get_player())
+        self._state = GameState(self, board, opponent.get_agent())
         self._player_valid_actions = self._calc_valid_actions(player.get_color())
 
     @staticmethod
@@ -75,8 +75,8 @@ class Reversi(GameContext):
     def _is_valid_action(self, action):
         return action in self._player_valid_actions
 
-    def get_player(self):
-        return self._player.get_player()
+    def get_agent(self):
+        return self._player.get_agent()
 
     def get_score(self):
         return self._player.get_score()
@@ -85,8 +85,8 @@ class Reversi(GameContext):
         if self.is_active():
             return None
         if self._player.get_score() > self._opponent.get_score():
-            return self._player.get_player()
-        return self._opponent.get_player()
+            return self._player.get_agent()
+        return self._opponent.get_agent()
 
     def apply(self, action):
         if action in self._player_valid_actions:
@@ -135,11 +135,11 @@ class Reversi(GameContext):
         black = self._player if self._player.is_black() else self._opponent
         white = self._player if self._player.is_white() else self._opponent
         print(self._board)
-        print('Black: {} ({})'.format(black.get_score(), black.get_player()))
-        print('White: {} ({})'.format(white.get_score(), white.get_player()))
+        print('Black: {} ({})'.format(black.get_score(), black.get_agent()))
+        print('White: {} ({})'.format(white.get_score(), white.get_agent()))
 
 
 if __name__ == "__main__":
     simple_match(Reversi.create(
-        choose_player('Choose a black player type'),
-        choose_player('Choose a white player type')))
+        choose_agent('Choose a black agent type'),
+        choose_agent('Choose a white agent type')))

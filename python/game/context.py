@@ -11,7 +11,7 @@ class GameContext(object):
         """
         return []
 
-    def get_player(self):
+    def get_agent(self):
         """ Returns the current player
         """
         return None
@@ -21,10 +21,10 @@ class GameContext(object):
         """
         return -1
 
-    def is_winner(self):
-        """ Returns True if the current player has won the game
+    def get_winner(self):
+        """ Return the winner of the game
         """
-        return False
+        return None
 
     def apply(self, action):
         """ Returns a new game context (the current context copy + action applied)

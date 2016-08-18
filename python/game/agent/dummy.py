@@ -1,8 +1,8 @@
-from player import Player
+from agent import Agent
 import random
 
 
-class RandomPlayer(Player):
+class RandomAgent(Agent):
     def decide(self, context):
         actions = context.get_valid_actions()
         if len(actions) == 0:

@@ -1,7 +1,7 @@
-from player import Player
+from agent import Agent
 
 
-class ManualPlayer(Player):
+class ManualAgent(Agent):
     def decide(self, context):
         valid_actions = context.get_valid_actions()
         if len(valid_actions) == 0:

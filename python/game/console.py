@@ -1,38 +1,38 @@
-from players.dummy import RandomPlayer
-from players.manual import ManualPlayer
-from players.minimax import MinimaxPlayer, MinimaxAlphaBetaPlayer
-from players.mcts import MonteCarloTreeSearchPlayer
+from agent.dummy import RandomAgent
+from agent.manual import ManualAgent
+from agent.minimax import MinimaxAgent, MinimaxABAgent
+from agent.mcts import MCTSAgent
 
 
-def choose_player(message):
+def choose_agent(message):
     while True:
         print
         print(message)
         print_horizontal_line()
-        print('[1] Manual (Human) Player')
-        print('[2] Random Player')
-        print('[3] MiniMax (Naive) Player')
-        print('[4] MiniMax (Alpha Beta Pruning) Player')
-        print('[5] Monte Carlo Tree Search Player')
+        print('[1] Manual (Human)')
+        print('[2] Random (Dummy)')
+        print('[3] MiniMax (Naive)')
+        print('[4] MiniMax (Alpha Beta Pruning)')
+        print('[5] Monte Carlo Tree Search')
         # print('[6] Deep Q Learning Player')
         print_horizontal_line()
         try:
             number = eval(raw_input('Enter [1-6]: '))
             if number == 1:
-                return ManualPlayer()
+                return ManualAgent()
             if number == 2:
-                return RandomPlayer()
+                return RandomAgent()
             if number == 3:
                 number = eval(raw_input('Max Depth: '))
-                return MinimaxPlayer(number)
+                return MinimaxAgent(number)
             if number == 4:
                 number = eval(raw_input('Max Depth: '))
-                return MinimaxAlphaBetaPlayer(number)
+                return MinimaxABAgent(number)
             if number == 5:
                 number = eval(raw_input('Max Seconds: '))
-                return MonteCarloTreeSearchPlayer(number)
+                return MCTSAgent(number)
             if number == 6:
-                raise NotImplementedError("Deep Q Learning Player Not Implemented")
+                raise NotImplementedError("Deep Q Learning Agent Not Implemented")
         except Exception as e:
             print(e)
 
