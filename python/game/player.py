@@ -1,4 +1,4 @@
-class GamePlayer(object):
+class Player(object):
     def __init__(self, agent, kind, score):
         self._agent = agent
         self._kind = kind
@@ -17,7 +17,7 @@ class GamePlayer(object):
         return self._score
 
     def apply(self, score_change):
-        return GamePlayer(self.agent, self.kind, self.score + score_change)
+        return Player(self.agent, self.kind, self.score + score_change)
 
     def __str__(self):
         return '{}: {} ({})'.format(self.kind, self.score, self.agent)

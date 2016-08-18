@@ -1,4 +1,4 @@
-class GameContext(object):
+class Environment(object):
     """ This is an interface expected to be implemented in a board game class
     """
     @property

@@ -1,4 +1,4 @@
-class GameState(object):
+class State(object):
     def __init__(self, context, board, agent):
         self._context = context
         self._board = board

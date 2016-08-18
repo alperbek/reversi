@@ -1,7 +1,7 @@
-from game.board import GameBoard
-from game.context import GameContext
-from game.player import GamePlayer
-from game.state import GameState
+from game.board import Board
+from game.environment import Environment
+from game.player import Player
+from game.state import State
 from game.console import choose_agent
 from game.match import simple_match
 from enum import Enum
@@ -17,12 +17,12 @@ class Disc(Enum):
         return self.name
 
 
-class Reversi(GameContext):
+class Reversi(Environment):
     def __init__(self, board, player, opponent):
         self._board = board
         self._player = player
         self._opponent = opponent
-        self._state = GameState(self, board, opponent.agent)
+        self._state = State(self, board, opponent.agent)
         self._player_valid_actions = self._calc_valid_actions(player)
 
     @staticmethod
@@ -33,10 +33,10 @@ class Reversi(GameContext):
         grid[row][col+1] = Disc.BLACK
         grid[row+1][col] = Disc.BLACK
         grid[row+1][col+1] = Disc.WHITE
-        return Reversi(GameBoard(grid, Disc.EMPTY,
-                                 {Disc.EMPTY: ' ', Disc.BLACK: '@', Disc.WHITE: 'O'}),
-                       GamePlayer(black_player, Disc.BLACK, 2),
-                       GamePlayer(white_player, Disc.WHITE, 2))
+        return Reversi(Board(grid, Disc.EMPTY,
+                             {Disc.EMPTY: ' ', Disc.BLACK: '@', Disc.WHITE: 'O'}),
+                       Player(black_player, Disc.BLACK, 2),
+                       Player(white_player, Disc.WHITE, 2))
 
     @property
     def is_active(self):

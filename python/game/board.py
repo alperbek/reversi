@@ -2,7 +2,7 @@ import copy
 import os
 
 
-class GameBoard(object):
+class Board(object):
     def __init__(self, grid, empty, mapping):
         self._grid = grid
         self._width = len(grid[0])
@@ -34,7 +34,7 @@ class GameBoard(object):
         for action in actions:
             row, col = action[1]
             grid[row][col] = action[0]
-        return GameBoard(grid, self._empty, self._mapping)
+        return Board(grid, self._empty, self._mapping)
 
     def __str__(self):
         s = ' | '
