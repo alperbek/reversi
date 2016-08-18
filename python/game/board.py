@@ -10,20 +10,24 @@ class GameBoard(object):
         self._empty = empty
         self._mapping = mapping
 
-    def get_height(self):
+    @property
+    def height(self):
         return self._height
 
-    def get_width(self):
+    @property
+    def width(self):
         return self._width
 
-    def in_bounds(self, (row, col)):
+    def in_bounds(self, cell):
+        row, col = cell
         return 0 <= row < self._height and 0 <= col < self._width
 
-    def get_value(self, (row, col)):
+    def __getitem__(self, cell):
+        row, col = cell
         return self._grid[row][col]
 
-    def is_empty(self, (row, col)):
-        return self.get_value((row, col)) == self._empty
+    def is_empty(self, cell):
+        return self[cell] == self._empty
 
     def apply(self, actions):
         grid = copy.deepcopy(self._grid)

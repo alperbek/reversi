@@ -1,27 +1,32 @@
 class GameContext(object):
     """ This is an interface expected to be implemented in a board game class
     """
+    @property
     def is_active(self):
         """ True if at least one of the players can continue playing
         """
         return False
 
-    def get_valid_actions(self):
+    @property
+    def valid_actions(self):
         """ Returns a list of valid actions for  current player
         """
         return []
 
-    def get_agent(self):
+    @property
+    def agent(self):
         """ Returns the current player
         """
         return None
 
-    def get_score(self):
+    @property
+    def score(self):
         """ Returns the current score of the player
         """
         return -1
 
-    def get_winner(self):
+    @property
+    def winner(self):
         """ Return the winner of the game
         """
         return None
@@ -31,7 +36,8 @@ class GameContext(object):
         """
         return None
 
-    def get_state(self):
+    @property
+    def state(self):
         """ Returns the current game state
         """
         return None

@@ -35,19 +35,19 @@ class MinimaxAgent(Agent):
         self._max_depth = max_depth
 
     def decide(self, context):
-        return arg_max(context.get_valid_actions(),
+        return arg_max(context.valid_actions,
                        lambda action: self._min_play(context.apply(action), 1))
 
     def _max_play(self, context, depth):
-        if not context.is_active() or depth > self._max_depth:
-            return context.get_score()
-        return val_max(context.get_valid_actions(),
+        if not context.is_active or depth > self._max_depth:
+            return context.score
+        return val_max(context.valid_actions,
                        lambda action: self._min_play(context.apply(action), depth+1))
 
     def _min_play(self, context, depth):
-        if not context.is_active() or depth > self._max_depth:
-            return context.get_score()
-        return val_min(context.get_valid_actions(),
+        if not context.is_active or depth > self._max_depth:
+            return context.score
+        return val_min(context.valid_actions,
                        lambda action: self._max_play(context.apply(action), depth+1))
 
 
@@ -76,14 +76,14 @@ class MinimaxABAgent(Agent):
         self._max_depth = max_depth
 
     def decide(self, context):
-        return arg_max(context.get_valid_actions(),
+        return arg_max(context.valid_actions,
                        lambda action: self._min_play(context.apply(action),
                                                      -INFINITY, INFINITY, 1))
 
     def _max_play(self, context, alpha, beta, depth):
-        if not context.is_active() or depth > self._max_depth:
-            return context.get_score()
-        actions = context.get_valid_actions()
+        if not context.is_active or depth > self._max_depth:
+            return context.score
+        actions = context.valid_actions
         if len(actions) == 0:
             return self._min_play(context.apply(None),
                                   alpha, beta, depth)
@@ -97,9 +97,9 @@ class MinimaxABAgent(Agent):
         return value
 
     def _min_play(self, context, alpha, beta, depth):
-        if not context.is_active() or depth > self._max_depth:
-            return context.get_score()
-        actions = context.get_valid_actions()
+        if not context.is_active or depth > self._max_depth:
+            return context.score
+        actions = context.valid_actions
         if len(actions) == 0:
             return self._max_play(context.apply(None),
                                   alpha, beta, depth)

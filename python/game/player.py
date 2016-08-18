@@ -4,21 +4,24 @@ class GamePlayer(object):
         self._kind = kind
         self._score = score
 
-    def get_agent(self):
+    @property
+    def agent(self):
         return self._agent
 
-    def get_kind(self):
+    @property
+    def kind(self):
         return self._kind
 
-    def get_score(self):
+    @property
+    def score(self):
         return self._score
 
     def apply(self, score_change):
-        return GamePlayer(self._agent, self._kind, self._score + score_change)
+        return GamePlayer(self.agent, self.kind, self.score + score_change)
 
     def __str__(self):
-        return '{}: {} ({})'.format(self._kind, self._score, self._agent)
+        return '{}: {} ({})'.format(self.kind, self.score, self.agent)
 
     def __eq__(self, other):
-        return self.get_agent() == other.get_agent()
+        return self.agent == other.agent
 

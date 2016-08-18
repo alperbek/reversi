@@ -22,32 +22,28 @@ class StateInfoMap(object):
     def exists(self, state):
         return state in self._states
 
-    def get_unexplored(self, states):
+    def unexplored(self, states):
         return [state for state in states if not self.exists(state)]
 
-    def update_all(self, states, won):
+    def update(self, states, won):
         for state in states:
-            self.update(state, won)
+            if self.exists(state):
+                info = self._states[state]
+                info.plays += 1
+                if won:
+                    info.wins += 1
 
-    def update(self, state, won):
-        if not self.exists(state):
-            return
-        info = self._states[state]
-        info.plays += 1
-        if won:
-            info.wins += 1
-
-    def get_wins(self, state):
+    def wins(self, state):
         if not self.exists(state):
             return 0
         return self._states[state].wins
 
-    def get_plays(self, state):
+    def plays(self, state):
         if not self.exists(state):
             return 0
         return self._states[state].plays
 
-    def get_win_ratio(self, state):
+    def win_ratio(self, state):
         if not self.exists(state):
             return 0.0
         info = self._states[state]
@@ -55,35 +51,35 @@ class StateInfoMap(object):
             return 0.0
         return info.wins * 1.0 / info.plays
 
-    def get_best_state(self, states):
+    def best_state(self, states):
         """ Using UCB1 select the best state
         """
-        log_sum = log(sum(self.get_plays(state) for state in states))
-        _, best_state = max([(self.get_win_ratio(state)
-                              + self._c * sqrt(log_sum / self.get_plays(state)), state)
+        log_sum = log(sum(self.plays(state) for state in states))
+        _, best_state = max([(self.win_ratio(state)
+                              + self._c * sqrt(log_sum / self.plays(state)), state)
                              for state in states])
         return best_state
 
-    def get_best_action(self, context, actions):
-        ret1 = (action1, win_ratio1, wins1, plays1) = self.get_action_by_visits(context, actions)
-        ret2 = (action2, win_ratio2, wins2, plays2) = self.get_action_by_win_ratio(context, actions)
+    def best_action(self, context, actions):
+        ret1 = (action1, win_ratio1, wins1, plays1) = self.action_by_visits(context, actions)
+        ret2 = (action2, win_ratio2, wins2, plays2) = self.action_by_win_ratio(context, actions)
         if plays1 == plays2:
             return ret1 if win_ratio1 > win_ratio2 else ret2
         else:
             return ret1 if plays1 > plays2 else ret2
 
-    def get_action_by_visits(self, context, actions):
-        state_action_pairs = [(context.apply(action).get_state(), action) for action in actions]
-        plays, state, action = max((self.get_plays(state), state, action)
+    def action_by_visits(self, context, actions):
+        state_action_pairs = [(context.apply(action).state, action) for action in actions]
+        plays, state, action = max((self.plays(state), state, action)
                                    for state, action in state_action_pairs)
-        wins, win_ratio = self.get_wins(state), self.get_win_ratio(state)
+        wins, win_ratio = self.wins(state), self.win_ratio(state)
         return action, win_ratio, wins, plays
 
-    def get_action_by_win_ratio(self, context, actions):
-        state_action_pairs = [(context.apply(action).get_state(), action) for action in actions]
-        win_ratio, state, action = max((self.get_win_ratio(state), state, action)
+    def action_by_win_ratio(self, context, actions):
+        state_action_pairs = [(context.apply(action).state, action) for action in actions]
+        win_ratio, state, action = max((self.win_ratio(state), state, action)
                                        for state, action in state_action_pairs)
-        wins, plays = self.get_wins(state), self.get_plays(state)
+        wins, plays = self.wins(state), self.plays(state)
         return action, win_ratio, wins, plays
 
 
@@ -93,7 +89,7 @@ class MCTSAgent(Agent):
         self._state_info_map = StateInfoMap()
 
     def decide(self, context):
-        valid_actions = context.get_valid_actions()
+        valid_actions = context.valid_actions
         if len(valid_actions) == 0:
             return None
         if len(valid_actions) == 1:
@@ -103,7 +99,7 @@ class MCTSAgent(Agent):
         while time.time() - start < self._max_seconds:
             self._simulate(context)
 
-        action, win_ratio, wins, plays = self._state_info_map.get_best_action(context, valid_actions)
+        action, win_ratio, wins, plays = self._state_info_map.best_action(context, valid_actions)
         print('Win Ratio: {:.2f}% ({}/{})'.format(win_ratio * 100.0, wins, plays))
         return action
 
@@ -111,27 +107,27 @@ class MCTSAgent(Agent):
         expand = True
         visited = set()
 
-        while context.is_active():
-            agent = context.get_agent()
+        while context.is_active:
+            agent = context.agent
             # selection
-            contexts = [context.apply(action) for action in context.get_valid_actions()]
+            contexts = [context.apply(action) for action in context.valid_actions]
             if len(contexts) > 0:
-                states = [context.get_state() for context in contexts]
-                unexplored = self._state_info_map.get_unexplored(states)
+                states = [context.state for context in contexts]
+                unexplored = self._state_info_map.unexplored(states)
                 if len(unexplored) == 0:
                     # exploitation
-                    best_state = self._state_info_map.get_best_state(states)
-                    context = best_state.get_context()
+                    best_state = self._state_info_map.best_state(states)
+                    context = best_state.context
                 else:
                     # exploration
                     random_state = random.choice(unexplored)
-                    context = random_state.get_context()
+                    context = random_state.context
             else:
                 context = context.apply(None)  # pass to the opponent
 
             # expansion of tree / node
             if agent == self:
-                state = context.get_state()
+                state = context.state
                 visited.add(state)
                 if expand:
                     if not self._state_info_map.exists(state):
@@ -139,4 +135,4 @@ class MCTSAgent(Agent):
                         self._state_info_map.add(state)
 
         # back propagation of wins / plays
-        self._state_info_map.update_all(visited, context.get_winner() == self)
+        self._state_info_map.update(visited, context.winner == self)

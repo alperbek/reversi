@@ -7,10 +7,9 @@ def simple_match(context):
     print_game_start()
 
     turn = 1
-    while context.is_active():
-        agent = context.get_agent()
+    while context.is_active:
         start = print_turn_start(turn, context)
-        action = agent.decide(context)
+        action = context.agent.decide(context)
         context = context.apply(action)
         print_turn_end(start, action)
         turn += 1
@@ -24,7 +23,7 @@ def print_game_start():
 
 def print_turn_start(turn, context):
     start = time.time()
-    agent = context.get_agent()
+    agent = context.agent
     print('[{}] Turn: {} ({})'.format(
         time.strftime("%H:%M:%S", time.localtime(start)), turn, agent))
     context.print_summary()
