@@ -117,12 +117,17 @@ This player learns from the experience as it plays but it forgets everything onc
 
 ## Deep-Q Network
 
-TODO implementing...
+This player uses [Q-learning](https://en.wikipedia.org/wiki/Q-learning) (from Reinforcement Learning).
+There are so many combiation of (state, action) to fit into a computer memory.
+So, we use a neural network as an approximation of Q-function.
 
-This player uses [Q-learning](https://en.wikipedia.org/wiki/Q-learning) (from Reinforcement Learning) with Neural Network as the value function.
+This agent will learn from the experience.
+
 
 ## References
 - https://andysalerno.com/2016/03/Monte-Carlo-Reversi
 - https://jeffbradberry.com/posts/2015/09/intro-to-monte-carlo-tree-search/
 - http://aima.cs.berkeley.edu/python/games.html
+- http://outlace.com/Reinforcement-Learning-Part-3/
+- https://www.nervanasys.com/demystifying-deep-reinforcement-learning/
 

@@ -23,11 +23,6 @@ class Reversi(Environment):
         self._white = white
         self._valid_actions = {}  # { action: flips } where flips = [cell1, cell2, ..]
 
-    def is_active(self, state):
-        if len(self.valid_actions(state)) > 0:
-            return True
-        return len(self.valid_actions(state.opposite())) > 0
-
     def valid_actions(self, state):
         if state not in self._valid_actions:
             self._valid_actions[state] = self._calc_valid_actions(state)
@@ -42,14 +37,9 @@ class Reversi(Environment):
             return state.turn(board, len(flips)+1, -len(flips))
         return state.opposite()
 
-    def winner(self, state):
-        if self.is_active(state) or state.score == state.opponent_score:
-            return None
-        return state.agent if state.score > state.opponent_score else state.opponent
-
     def print_summary(self, state):
-        black_score = state.score if state.agent == self._black else state.opponent_score
-        white_score = state.score if state.agent == self._white else state.opponent_score
+        black_score = state.score(self._black)
+        white_score = state.score(self._white)
         print('{}: {} ({})'.format(Disc.BLACK, black_score, self._black))
         print('{}: {} ({})'.format(Disc.WHITE, white_score, self._white))
 

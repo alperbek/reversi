@@ -1,4 +1,5 @@
 from agent.dummy import RandomAgent
+from agent.dqn import DQNAgent
 from agent.manual import ManualAgent
 from agent.minimax import MinimaxAgent, MinimaxABAgent
 from agent.mcts import MCTSAgent
@@ -14,7 +15,7 @@ def choose_agent(message):
         print('[3] MiniMax (Naive)')
         print('[4] MiniMax (Alpha Beta Pruning)')
         print('[5] Monte Carlo Tree Search')
-        # print('[6] Deep Q Learning Player')
+        print('[6] Deep Q Network')
         print_horizontal_line()
         try:
             number = eval(raw_input('Enter [1-6]: '))
@@ -32,7 +33,7 @@ def choose_agent(message):
                 number = eval(raw_input('Max Seconds: '))
                 return MCTSAgent(number)
             if number == 6:
-                raise NotImplementedError("Deep Q Learning Agent Not Implemented")
+                return DQNAgent()
         except Exception as e:
             print(e)
 

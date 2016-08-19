@@ -40,13 +40,13 @@ class MinimaxAgent(Agent):
 
     def _max_play(self, env, state, depth):
         if not env.is_active(state) or depth > self._max_depth:
-            return state.score
+            return state.score(self)
         return val_max(env.valid_actions(state),
                        lambda action: self._min_play(env, env.apply(state, action), depth+1))
 
     def _min_play(self, env, state, depth):
         if not env.is_active(state) or depth > self._max_depth:
-            return state.opponent_score
+            return state.score(self)
         return val_min(env.valid_actions(state),
                        lambda action: self._max_play(env, env.apply(state, action), depth+1))
 
@@ -82,7 +82,7 @@ class MinimaxABAgent(Agent):
 
     def _max_play(self, env, state, alpha, beta, depth):
         if not env.is_active(state) or depth > self._max_depth:
-            return state.score
+            return state.score(self)
         actions = env.valid_actions(state)
         if len(actions) == 0:
             return self._min_play(env, env.apply(state, None),
@@ -98,7 +98,7 @@ class MinimaxABAgent(Agent):
 
     def _min_play(self, env, state, alpha, beta, depth):
         if not env.is_active(state) or depth > self._max_depth:
-            return state.opponent_score
+            return state.score(self)
         actions = env.valid_actions(state)
         if len(actions) == 0:
             return self._max_play(env, env.apply(state, None),
