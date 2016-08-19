@@ -5,22 +5,20 @@ import os
 class Board(object):
     def __init__(self, grid, empty, mapping):
         self._grid = grid
-        self._width = len(grid[0])
-        self._height = len(grid)
         self._empty = empty
         self._mapping = mapping
 
     @property
     def height(self):
-        return self._height
+        return len(self._grid)
 
     @property
     def width(self):
-        return self._width
+        return len(self._grid[0])
 
     def in_bounds(self, cell):
         row, col = cell
-        return 0 <= row < self._height and 0 <= col < self._width
+        return 0 <= row < self.height and 0 <= col < self.width
 
     def __getitem__(self, cell):
         row, col = cell
@@ -38,15 +36,15 @@ class Board(object):
 
     def __str__(self):
         s = ' | '
-        for col in range(self._width):
+        for col in range(self.width):
             s += str(col) + ' | '
-        s += os.linesep + '-' * (self._width * 4 + 2)
-        for row in range(self._height):
+        s += os.linesep + '-' * (self.width * 4 + 2)
+        for row in range(self.height):
             s += os.linesep + str(row) + '| '
-            for col in range(self._width):
+            for col in range(self.width):
                 s += self._mapping[self._grid[row][col]] + ' | '
             s += os.linesep
-            s += '-' * (self._width * 4 + 2)
+            s += '-' * (self.width * 4 + 2)
         return s
 
     def __eq__(self, other):

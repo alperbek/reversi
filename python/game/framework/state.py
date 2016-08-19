@@ -1,26 +1,20 @@
 class State(object):
-    def __init__(self, env, board, agent):
-        self._env = env
-        self._board = board
-        self._agent = agent
+    def __init__(self, board, agent, opponent, score, opponent_score):
+        self.board = board
+        self.agent = agent
+        self.opponent = opponent
+        self.score = score
+        self.opponent_score = opponent_score
 
-    @property
-    def env(self):
-        """ Related env
-        """
-        return self._env
+    def turn(self, board, reward, opponent_reward):
+        return State(board,
+                     self.opponent,
+                     self.agent,
+                     self.opponent_score + opponent_reward,
+                     self.score + reward)
 
-    @property
-    def board(self):
-        """ The current board
-        """
-        return self._board
-
-    @property
-    def agent(self):
-        """ This player caused this state
-        """
-        return self._agent
+    def opposite(self):
+        return self.turn(self.board, 0, 0)
 
     def __eq__(self, other):
         return self.board == other.board and self.agent == other.agent

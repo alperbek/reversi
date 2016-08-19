@@ -60,25 +60,21 @@ class StateInfoMap(object):
                              for state in states])
         return best_state
 
-    def best_action(self, env, actions):
-        ret1 = (action1, win_ratio1, wins1, plays1) = self.action_by_visits(env, actions)
-        ret2 = (action2, win_ratio2, wins2, plays2) = self.action_by_win_ratio(env, actions)
+    def best_action(self, transitions):
+        ret1 = (action1, win_ratio1, wins1, plays1) = self.action_by_visits(transitions)
+        ret2 = (action2, win_ratio2, wins2, plays2) = self.action_by_win_ratio(transitions)
         if plays1 == plays2:
             return ret1 if win_ratio1 > win_ratio2 else ret2
         else:
             return ret1 if plays1 > plays2 else ret2
 
-    def action_by_visits(self, env, actions):
-        state_action_pairs = [(env.apply(action).state, action) for action in actions]
-        plays, state, action = max((self.plays(state), state, action)
-                                   for state, action in state_action_pairs)
+    def action_by_visits(self, transitions):
+        plays, state, action = max((self.plays(s), s, a) for s, a in transitions)
         wins, win_ratio = self.wins(state), self.win_ratio(state)
         return action, win_ratio, wins, plays
 
-    def action_by_win_ratio(self, env, actions):
-        state_action_pairs = [(env.apply(action).state, action) for action in actions]
-        win_ratio, state, action = max((self.win_ratio(state), state, action)
-                                       for state, action in state_action_pairs)
+    def action_by_win_ratio(self, transitions):
+        win_ratio, state, action = max((self.win_ratio(s), s, a) for s, a in transitions)
         wins, plays = self.wins(state), self.plays(state)
         return action, win_ratio, wins, plays
 
@@ -88,46 +84,46 @@ class MCTSAgent(Agent):
         self._max_seconds = max_seconds
         self._state_info_map = StateInfoMap()
 
-    def decide(self, env):
-        valid_actions = env.valid_actions
+    def decide(self, env, state):
+        valid_actions = env.valid_actions(state)
         if len(valid_actions) == 0:
             return None
         if len(valid_actions) == 1:
             return valid_actions[0]
 
+        count = 0
         start = time.time()
         while time.time() - start < self._max_seconds:
-            self._simulate(env)
+            self._simulate(env, state)
+            count += 1
 
-        action, win_ratio, wins, plays = self._state_info_map.best_action(env, valid_actions)
-        print('Win Ratio: {:.2f}% ({}/{})'.format(win_ratio * 100.0, wins, plays))
+        transitions = [(env.apply(state, action), action) for action in valid_actions]
+        action, win_ratio, wins, plays = self._state_info_map.best_action(transitions)
+        print('Win Ratio: {:.2f}% ({}/{})[{}]'.format(win_ratio * 100.0, wins, plays, count))
         return action
 
-    def _simulate(self, env):
+    def _simulate(self, env, state):
         expand = True
         visited = set()
 
-        while env.is_active:
-            agent = env.agent
+        while env.is_active(state):
+            agent = state.agent  # agent that is acting on this state
+
             # selection
-            env_list = [env.apply(action) for action in env.valid_actions]
-            if len(env_list) > 0:
-                states = [env.state for env in env_list]
+            states = [env.apply(state, action) for action in env.valid_actions(state)]
+            if len(states) > 0:
                 unexplored = self._state_info_map.unexplored(states)
                 if len(unexplored) == 0:
                     # exploitation
-                    best_state = self._state_info_map.best_state(states)
-                    env = best_state.env
+                    state = self._state_info_map.best_state(states)
                 else:
                     # exploration
-                    random_state = random.choice(unexplored)
-                    env = random_state.env
+                    state = random.choice(unexplored)
             else:
-                env = env.apply(None)  # pass to the opponent
+                state = env.apply(state, None)  # pass to the opponent
 
             # expansion of tree / node
             if agent == self:
-                state = env.state
                 visited.add(state)
                 if expand:
                     if not self._state_info_map.exists(state):
@@ -135,4 +131,4 @@ class MCTSAgent(Agent):
                         self._state_info_map.add(state)
 
         # back propagation of wins / plays
-        self._state_info_map.update(visited, env.winner == self)
+        self._state_info_map.update(visited, env.winner(state) == self)

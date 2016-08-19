@@ -4,7 +4,6 @@ from enum import Enum
 from game.framework.board import Board
 from game.framework.environment import Environment
 from game.framework.match import simple_match
-from game.framework.player import Player
 from game.framework.state import State
 from game.console import choose_agent
 
@@ -19,110 +18,89 @@ class Disc(Enum):
 
 
 class Reversi(Environment):
-    def __init__(self, board, player, opponent):
-        self._board = board
-        self._player = player
-        self._opponent = opponent
-        self._state = State(self, board, opponent.agent)
-        self._player_valid_actions = self._calc_valid_actions(player)
+    def __init__(self, black, white):
+        self._black = black
+        self._white = white
+        self._valid_actions = {}  # { action: flips } where flips = [cell1, cell2, ..]
 
-    @staticmethod
-    def create(black_player, white_player, board_size=8):
-        row, col = board_size/2-1, board_size/2-1
-        grid = [[Disc.EMPTY for _ in range(board_size)] for _ in range(board_size)]
-        grid[row][col] = Disc.WHITE
-        grid[row][col+1] = Disc.BLACK
-        grid[row+1][col] = Disc.BLACK
-        grid[row+1][col+1] = Disc.WHITE
-        return Reversi(Board(grid, Disc.EMPTY,
-                             {Disc.EMPTY: ' ', Disc.BLACK: '@', Disc.WHITE: 'O'}),
-                       Player(black_player, Disc.BLACK, 2),
-                       Player(white_player, Disc.WHITE, 2))
+    def is_active(self, state):
+        if len(self.valid_actions(state)) > 0:
+            return True
+        return len(self.valid_actions(state.opposite())) > 0
 
-    @property
-    def is_active(self):
-        return len(self._player_valid_actions) > 0 or \
-               len(self._calc_valid_actions(self._opponent)) > 0  # check if opponent still has any move
+    def valid_actions(self, state):
+        if state not in self._valid_actions:
+            self._valid_actions[state] = self._calc_valid_actions(state)
+        return self._valid_actions[state].keys()
 
-    @property
-    def valid_actions(self):
-        return self._player_valid_actions.keys()
+    def apply(self, state, action):
+        board, agent = state.board, state.agent
+        if action in self.valid_actions(state):
+            flips = self._valid_actions[state][action]
+            disc_color = self._disc_color(state.agent)
+            board = board.apply([(disc_color, flip) for flip in [action] + flips])
+            return state.turn(board, len(flips)+1, -len(flips))
+        return state.opposite()
 
-    def _is_valid_action(self, action):
-        return action in self._player_valid_actions
-
-    @property
-    def agent(self):
-        return self._player.agent
-
-    @property
-    def score(self):
-        return self._player.score
-
-    @property
-    def winner(self):
-        if self.is_active:
+    def winner(self, state):
+        if self.is_active(state) or state.score == state.opponent_score:
             return None
-        if self._player.score > self._opponent.score:
-            return self._player.agent
-        return self._opponent.agent
+        return state.agent if state.score > state.opponent_score else state.opponent
 
-    def apply(self, action):
-        if action in self._player_valid_actions:
-            flips = self._player_valid_actions[action]
-            board = self._board.apply([(self._player.kind, flip) for flip in [action] + flips])
-        else:
-            flips = []
-            board = self._board
-        return Reversi(
-            board,
-            self._opponent.apply(-len(flips)),
-            self._player.apply(len(flips) + 1)  # including the given action itself
-        )
+    def print_summary(self, state):
+        black_score = state.score if state.agent == self._black else state.opponent_score
+        white_score = state.score if state.agent == self._white else state.opponent_score
+        print('{}: {} ({})'.format(Disc.BLACK, black_score, self._black))
+        print('{}: {} ({})'.format(Disc.WHITE, white_score, self._white))
 
-    @property
-    def state(self):
-        return self._state
+    def _disc_color(self, agent):
+        return Disc.BLACK if agent == self._black else Disc.WHITE
 
-    def print_summary(self):
-        player_kind = self._player.kind
-        black = self._player if player_kind == Disc.BLACK else self._opponent
-        white = self._player if player_kind == Disc.WHITE else self._opponent
-        print(self._board)
-        print('{}'.format(black))
-        print('{}'.format(white))
-
-    def _calc_valid_actions(self, player):
-        player_kind = player.kind
+    def _calc_valid_actions(self, state):
+        board, agent = state.board, state.agent
+        disc_color = self._disc_color(agent)
         valid_actions = {}
-        for cell in itertools.product(range(self._board.height),
-                                      range(self._board.width)):
-            if not self._board.is_empty(cell):
+        for cell in itertools.product(range(board.height), range(board.width)):
+            if not board.is_empty(cell):
                 continue
-            flips = self._calc_flips(player_kind, cell)
+            flips = self._calc_flips(disc_color, board, cell)
             if len(flips) > 0:
                 valid_actions[cell] = flips
         return valid_actions
 
-    def _calc_flips(self, player_kind, cell):
+    def _calc_flips(self, disc_color, board, cell):
         flips = []
         for dr, dc in itertools.product(range(-1, 2), range(-1, 2)):
             if (dr, dc) == (0, 0):
                 continue
-            flips.extend(self._find_flips(player_kind, cell, dr, dc, []))
+            flips.extend(self._find_flips(disc_color, board, cell, dr, dc, []))
         return flips
 
-    def _find_flips(self, player_kind, prev_cell, dr, dc, flippable):
+    def _find_flips(self, disc_color, board, prev_cell, dr, dc, flippable):
         cell = prev_cell[0] + dr, prev_cell[1] + dc
-        if not self._board.in_bounds(cell) or self._board.is_empty(cell):
+        if not board.in_bounds(cell) or board.is_empty(cell):
             return []
-        if self._board[cell] == player_kind:
+        if board[cell] == disc_color:
             return flippable
         flippable.append(cell)  # not empty and not player's kind ==> opponent kind
-        return self._find_flips(player_kind, cell, dr, dc, flippable)
+        return self._find_flips(disc_color, board, cell, dr, dc, flippable)
+
+
+def create_board(board_size=8):
+    row, col = board_size/2-1, board_size/2-1
+    grid = [[Disc.EMPTY for _ in range(board_size)] for _ in range(board_size)]
+    grid[row][col] = Disc.WHITE
+    grid[row][col+1] = Disc.BLACK
+    grid[row+1][col] = Disc.BLACK
+    grid[row+1][col+1] = Disc.WHITE
+    return Board(grid, Disc.EMPTY, {Disc.EMPTY: ' ', Disc.BLACK: '@', Disc.WHITE: 'O'})
+
+
+def main():
+    black = choose_agent('Choose a black agent type')
+    white = choose_agent('Choose a white agent type')
+    simple_match(Reversi(black, white), State(create_board(), black, white, 2, 2))
 
 
 if __name__ == "__main__":
-    simple_match(Reversi.create(
-        choose_agent('Choose a black agent type'),
-        choose_agent('Choose a white agent type')))
+    main()

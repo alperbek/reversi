@@ -2,8 +2,8 @@ from agent import Agent
 
 
 class ManualAgent(Agent):
-    def decide(self, env):
-        valid_actions = env.valid_actions
+    def decide(self, env, state):
+        valid_actions = env.valid_actions(state)
         if len(valid_actions) == 0:
             return None
         while True:
