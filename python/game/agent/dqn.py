@@ -10,15 +10,27 @@ dqn_file_name = 'DQN-learn'
 class DQN(object):
     def __init__(self, rows, cols, learning_rate=0.001):
         size = rows * cols
-        self._x = x = tf.placeholder(tf.float32, [None, size])
-        self._y = y = tf.placeholder(tf.float32, [None, size])
-        w = tf.Variable(tf.truncated_normal([size, size]))
-        b = tf.Variable(tf.truncated_normal([size]))
-        self._prediction = tf.nn.softmax(tf.matmul(x, w)+b)
-        cross_entropy = y * tf.log(self._prediction)
-        cost = tf.reduce_mean(-tf.reduce_sum(cross_entropy, 1))
-        self._optimizer = tf.train.GradientDescentOptimizer(learning_rate).minimize(cost)
-        self._saver = tf.train.Saver([w, b])
+        # features and labels
+        x = tf.placeholder(tf.float32, [None, size])
+        y = tf.placeholder(tf.float32, [None, size])
+        # parameters
+        w1 = tf.Variable(tf.truncated_normal([size, size]))
+        b1 = tf.Variable(tf.truncated_normal([size]))
+        w2 = tf.Variable(tf.truncated_normal([size, size]))
+        b2 = tf.Variable(tf.truncated_normal([size]))
+        # feed forward
+        h1 = tf.nn.relu(tf.matmul(x, w1) + b1)
+        prediction = tf.nn.softmax(tf.matmul(h1, w2) + b2)
+        # optimization
+        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(prediction, y))
+        optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
+        # for later use
+        self._x = x
+        self._y = y
+        self._prediction = prediction
+        self._optimizer = optimizer
+        self._saver = tf.train.Saver([w1, b1, w2, b2])
+        # session
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         self._sess = tf.Session(config=config)
