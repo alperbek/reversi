@@ -9,6 +9,6 @@ class Agent(object):
 
     def end(self):
         pass
-    
+
     def __str__(self):
         return self.__class__.__name__

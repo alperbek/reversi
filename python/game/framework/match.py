@@ -20,6 +20,7 @@ def simple_match(env, state):
 def on_game_start(state):
     print_message("Game start")
     state.agent.start()
+    state.opponent.start()
 
 
 def on_turn_start(turn, env, state):
@@ -42,6 +43,7 @@ def on_game_end(env, state):
         time.strftime("%H:%M:%S", time.localtime(time.time())), env.winner(state)))
     print(state.board)
     state.agent.end()
+    state.opponent.end()
     env.print_summary(state)
     print_message("Game end")
 

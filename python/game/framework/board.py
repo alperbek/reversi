@@ -17,9 +17,8 @@ class Board(object):
     def cols(self):
         return len(self._grid[0])
 
-    @property
-    def data(self):
-        return np.array([self[(row, col)].value
+    def data(self, sign):
+        return np.array([self[(row, col)].value * sign
                          for row in range(self.rows)
                          for col in range(self.cols)])
 

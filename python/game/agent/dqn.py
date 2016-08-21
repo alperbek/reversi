@@ -3,6 +3,7 @@ import random
 import numpy as np
 import collections
 import tensorflow as tf
+import os.path
 
 dqn_file_name = 'DQN-learn'
 
@@ -18,9 +19,12 @@ class DQN(object):
         b1 = tf.Variable(tf.truncated_normal([size]))
         w2 = tf.Variable(tf.truncated_normal([size, size]))
         b2 = tf.Variable(tf.truncated_normal([size]))
+        w3 = tf.Variable(tf.truncated_normal([size, size]))
+        b3 = tf.Variable(tf.truncated_normal([size]))
         # feed forward
         h1 = tf.nn.relu(tf.matmul(x, w1) + b1)
-        prediction = tf.nn.softmax(tf.matmul(h1, w2) + b2)
+        h2 = tf.nn.relu(tf.matmul(h1, w2) + b2)
+        prediction = tf.nn.softmax(tf.matmul(h2, w3) + b3)
         # optimization
         cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(prediction, y))
         optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
@@ -29,14 +33,18 @@ class DQN(object):
         self._y = y
         self._prediction = prediction
         self._optimizer = optimizer
-        self._saver = tf.train.Saver([w1, b1, w2, b2])
+        self._saver = tf.train.Saver([w1, b1, w2, b2, w3, b3])
         # session
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         self._sess = tf.Session(config=config)
         self._sess.run(tf.initialize_all_variables())
+        # persistence
+        if os.path.isfile(dqn_file_name):
+            self._saver.restore(self._sess, dqn_file_name)
 
-    def end(self):
+    def close(self):
+        self._saver.save(self._sess, dqn_file_name)
         self._sess.close()
 
     def train(self, x, y):
@@ -45,12 +53,6 @@ class DQN(object):
     def predict(self, x):
         return self._sess.run(self._prediction, feed_dict={self._x: x})
 
-    def save(self):
-        self._saver.save(self._sess, dqn_file_name)
-
-    def restore(self):
-        self._saver.restore(self._sess, dqn_file_name)
-
 
 class DQNAgent(Agent):
     """ Deep Q Network Agent
@@ -58,22 +60,20 @@ class DQNAgent(Agent):
     It uses the Q-learning with Deep Learning as Q-function approximation.
     """
     def __init__(self, (rows, cols),
+                 sign,
                  learning_on=True,
                  gamma=0.9,
                  buffer_size=20,
                  batch_size=10):
         self._dqn = DQN(rows, cols)
+        self._sign = sign
         self._learning_on = learning_on
         self._gamma = gamma
         self._replay = collections.deque([], buffer_size)
         self._batch_size = min(batch_size, buffer_size)
 
-    def start(self):
-        self._dqn.restore()
-
     def end(self):
-        self._dqn.save()
-        self._dqn.end()
+        self._dqn.close()
 
     def decide(self, env, state):
         valid_actions = env.valid_actions(state)
@@ -91,7 +91,7 @@ class DQNAgent(Agent):
     def _learn(self, state, action, valid_actions):
         if not self._learning_on:
             return
-        s = state.board.data
+        s = state.board.data(self._sign)
         a = action[0] * state.board.cols + action[1]
         sc = state.score(self)
         va = [a[0] * state.board.cols + a[1] for a in valid_actions]
@@ -112,9 +112,10 @@ class DQNAgent(Agent):
 
     def _choose(self, state, valid_actions):
         # Boltzmann distribution
-        p = self._predict(state.board.data)
+        p = self._predict(state.board.data(self._sign))
         i = np.argmax(p)
-        if random.random() < np.exp(p[i])/sum(np.exp(p)):
+        if not self._learning_on or \
+           random.random() < np.exp(p[i])/sum(np.exp(p)):
             action = i // state.board.rows, i // state.board.cols
             if action in valid_actions:
                 return action

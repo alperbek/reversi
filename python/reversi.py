@@ -86,8 +86,8 @@ def create_board((rows, cols)):
 
 def main():
     board_size = (8, 8)
-    black = choose_agent('Choose a black agent type', board_size)
-    white = choose_agent('Choose a white agent type', board_size)
+    black = choose_agent('Choose a black agent type', board_size, Disc.BLACK.value)
+    white = choose_agent('Choose a white agent type', board_size, Disc.WHITE.value)
     simple_match(Reversi(black, white),
                  State(create_board(board_size), black, white, 2, 2))
 
