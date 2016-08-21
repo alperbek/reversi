@@ -7,7 +7,7 @@ class Agent(object):
         """
         return None
 
-    def end(self):
+    def end(self, winner):
         pass
 
     def __str__(self):

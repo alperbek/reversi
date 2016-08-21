@@ -1,7 +1,6 @@
 from agent import Agent
 import random
 import numpy as np
-import collections
 import tensorflow as tf
 import os.path
 
@@ -9,7 +8,7 @@ dqn_file_name = 'DQN-learn'
 
 
 class DQN(object):
-    def __init__(self, rows, cols, learning_rate=0.001):
+    def __init__(self, rows, cols, learning_rate):
         size = rows * cols
         # features and labels
         x = tf.placeholder(tf.float32, [None, size])
@@ -26,13 +25,14 @@ class DQN(object):
         h2 = tf.nn.relu(tf.matmul(h1, w2) + b2)
         prediction = tf.nn.softmax(tf.matmul(h2, w3) + b3)
         # optimization
-        cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(prediction, y))
+        cost = tf.reduce_mean(tf.nn.l2_loss(prediction - y))
         optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
         # for later use
         self._x = x
         self._y = y
         self._prediction = prediction
         self._optimizer = optimizer
+        self._cost = cost
         self._saver = tf.train.Saver([w1, b1, w2, b2, w3, b3])
         # session
         config = tf.ConfigProto()
@@ -43,15 +43,24 @@ class DQN(object):
         if os.path.isfile(dqn_file_name):
             self._saver.restore(self._sess, dqn_file_name)
 
-    def close(self):
+    def end(self):
         self._saver.save(self._sess, dqn_file_name)
-        self._sess.close()
+        # self._sess.close()
 
     def train(self, x, y):
-        self._sess.run(self._optimizer, feed_dict={self._x: x, self._y: y})
+        _, cost = self._sess.run([self._optimizer, self._cost], feed_dict={self._x: x, self._y: y})
+        return cost
 
     def predict(self, x):
         return self._sess.run(self._prediction, feed_dict={self._x: x})
+
+
+def action_index(board, action):
+    return action[0] * board.cols + action[1]
+
+
+def index_action(board, ai):
+    return int(ai / board.rows), int(ai % board.cols)
 
 
 class DQNAgent(Agent):
@@ -62,18 +71,20 @@ class DQNAgent(Agent):
     def __init__(self, (rows, cols),
                  sign,
                  learning_on=True,
-                 gamma=0.9,
-                 buffer_size=20,
-                 batch_size=10):
-        self._dqn = DQN(rows, cols)
+                 learning_rate=0.0001,
+                 gamma=0.8,
+                 epsilon=0.99):
+        self._dqn = DQN(rows, cols, learning_rate)
         self._sign = sign
         self._learning_on = learning_on
         self._gamma = gamma
-        self._replay = collections.deque([], buffer_size)
-        self._batch_size = min(batch_size, buffer_size)
+        self._epsilon = epsilon
+        self._replay = []
 
-    def end(self):
-        self._dqn.close()
+    def end(self, winner):
+        self._train(winner)
+        self._dqn.end()
+        self._replay = []
 
     def decide(self, env, state):
         valid_actions = env.valid_actions(state)
@@ -84,39 +95,15 @@ class DQNAgent(Agent):
         action = self._choose(state, valid_actions)
 
         # learn from the experience (including the opponent action which is reflected in this agent's score)
-        self._learn(state, action, valid_actions)
+        self._learn(state, action)
 
         return action
 
-    def _learn(self, state, action, valid_actions):
-        if not self._learning_on:
-            return
-        s = state.board.data(self._sign)
-        a = action[0] * state.board.cols + action[1]
-        sc = state.score(self)
-        va = [a[0] * state.board.cols + a[1] for a in valid_actions]
-        if len(self._replay) == 0:
-            self._replay.append((s, a, sc, va))
-        elif len(self._replay) == 1:
-            self._replay[0] = self._replay[0] + (s, a, sc, va)
-        else:
-            self._replay.append(self._replay[-1][4:] + (s, a, sc, va))
-        if len(self._replay) >= self._batch_size:
-            x, y = [], []
-            for s1, a1, sc1, va1, s2, a2, sc2, va2 in random.sample(self._replay, self._batch_size):
-                x.append(s1)
-                p = self._predict(s1)
-                p[a1] = (sc2 - sc1) + self._gamma * max(self._predict(s2))
-                y.append([p[i] if i in va else 0.0 for i in range(len(p))])
-            self._train(x, y)
-
     def _choose(self, state, valid_actions):
-        # Boltzmann distribution
         p = self._predict(state.board.data(self._sign))
-        i = np.argmax(p)
-        if not self._learning_on or \
-           random.random() < np.exp(p[i])/sum(np.exp(p)):
-            action = i // state.board.rows, i // state.board.cols
+        ai = np.argmax(p)
+        if not self._learning_on or random.random() * self._epsilon <= p[ai]:
+            action = index_action(state.board, ai)
             if action in valid_actions:
                 return action
         return random.choice(valid_actions)
@@ -124,5 +111,27 @@ class DQNAgent(Agent):
     def _predict(self, state):
         return self._dqn.predict([state])[0]
 
-    def _train(self, x, y):
-        return self._dqn.train(x, y)
+    def _learn(self, state, action):
+        if not self._learning_on:
+            return
+        st = state.board.data(self._sign)
+        ai = action_index(state.board, action)
+        self._replay.append((st, ai))
+
+    def _train(self, winner):
+        if not self._learning_on:
+            return
+        reward = 0 if winner is None else 1 if winner == self else -1
+        x, y = [], []
+        last_index = len(self._replay)-1
+        for i in range(last_index, 0, -1):
+            st, ai = self._replay[i]
+            qv = self._predict(st)
+            qv[ai] = reward
+            if i != last_index:
+                st2, ai2 = self._replay[i+1]
+                qv[ai] += self._gamma * max(self._predict(st2))
+            x.append(st)
+            y.append(qv)
+        cost = self._dqn.train(x, y)
+        print 'Training Cost: {:.2f}'.format(cost)

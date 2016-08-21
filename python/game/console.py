@@ -33,7 +33,7 @@ def choose_agent(message, board_shape, sign):
                 number = eval(raw_input('Max Seconds: '))
                 return MCTSAgent(number)
             if number == 6:
-                return DQNAgent(board_shape, sign)
+                return DQNAgent(board_shape, sign, learning_on=False)
         except Exception as e:
             print(e)
 

@@ -3,7 +3,7 @@ import itertools
 from enum import Enum
 from game.framework.board import Board
 from game.framework.environment import Environment
-from game.framework.match import simple_match
+from game.framework.match import SimpleMatch
 from game.framework.state import State
 from game.console import choose_agent
 
@@ -88,8 +88,8 @@ def main():
     board_size = (8, 8)
     black = choose_agent('Choose a black agent type', board_size, Disc.BLACK.value)
     white = choose_agent('Choose a white agent type', board_size, Disc.WHITE.value)
-    simple_match(Reversi(black, white),
-                 State(create_board(board_size), black, white, 2, 2))
+    match = SimpleMatch(Reversi(black, white))
+    match.run(State(create_board(board_size), black, white, 2, 2))
 
 
 if __name__ == "__main__":
