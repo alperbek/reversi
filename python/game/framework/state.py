@@ -6,12 +6,12 @@ class State(object):
         self.agent_score = agent_score
         self.opponent_score = opponent_score
 
-    def turn(self, board, reward, opponent_reward):
+    def turn(self, board, agent_reward, opponent_reward):
         return State(board,
                      self.opponent,
                      self.agent,
                      self.opponent_score + opponent_reward,
-                     self.agent_score + reward)
+                     self.agent_score + agent_reward)
 
     def opposite(self):
         return self.turn(self.board, 0, 0)

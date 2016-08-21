@@ -38,10 +38,8 @@ class Reversi(Environment):
         return state.opposite()
 
     def print_summary(self, state):
-        black_score = state.score(self._black)
-        white_score = state.score(self._white)
-        print('{}: {} ({})'.format(Disc.BLACK, black_score, self._black))
-        print('{}: {} ({})'.format(Disc.WHITE, white_score, self._white))
+        print('{}: {} ({})'.format(Disc.BLACK, state.score(self._black), self._black))
+        print('{}: {} ({})'.format(Disc.WHITE, state.score(self._white), self._white))
 
     def _disc_color(self, agent):
         return Disc.BLACK if agent == self._black else Disc.WHITE
@@ -50,7 +48,7 @@ class Reversi(Environment):
         board, agent = state.board, state.agent
         disc_color = self._disc_color(agent)
         valid_actions = {}
-        for cell in itertools.product(range(board.height), range(board.width)):
+        for cell in itertools.product(range(board.rows), range(board.cols)):
             if not board.is_empty(cell):
                 continue
             flips = self._calc_flips(disc_color, board, cell)
@@ -76,9 +74,9 @@ class Reversi(Environment):
         return self._find_flips(disc_color, board, cell, dr, dc, flippable)
 
 
-def create_board(board_size=8):
-    row, col = board_size/2-1, board_size/2-1
-    grid = [[Disc.EMPTY for _ in range(board_size)] for _ in range(board_size)]
+def create_board((rows, cols)):
+    row, col = rows/2-1, cols/2-1
+    grid = [[Disc.EMPTY for _ in range(rows)] for _ in range(cols)]
     grid[row][col] = Disc.WHITE
     grid[row][col+1] = Disc.BLACK
     grid[row+1][col] = Disc.BLACK
@@ -87,9 +85,11 @@ def create_board(board_size=8):
 
 
 def main():
-    black = choose_agent('Choose a black agent type')
-    white = choose_agent('Choose a white agent type')
-    simple_match(Reversi(black, white), State(create_board(), black, white, 2, 2))
+    board_size = (8, 8)
+    black = choose_agent('Choose a black agent type', board_size)
+    white = choose_agent('Choose a white agent type', board_size)
+    simple_match(Reversi(black, white),
+                 State(create_board(board_size), black, white, 2, 2))
 
 
 if __name__ == "__main__":

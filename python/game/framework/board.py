@@ -1,5 +1,6 @@
 import copy
 import os
+import numpy as np
 
 
 class Board(object):
@@ -9,16 +10,22 @@ class Board(object):
         self._mapping = mapping
 
     @property
-    def height(self):
+    def rows(self):
         return len(self._grid)
 
     @property
-    def width(self):
+    def cols(self):
         return len(self._grid[0])
+
+    @property
+    def data(self):
+        return np.array([self[(row, col)].value
+                         for row in range(self.rows)
+                         for col in range(self.cols)])
 
     def in_bounds(self, cell):
         row, col = cell
-        return 0 <= row < self.height and 0 <= col < self.width
+        return 0 <= row < self.rows and 0 <= col < self.cols
 
     def __getitem__(self, cell):
         row, col = cell
@@ -36,15 +43,15 @@ class Board(object):
 
     def __str__(self):
         s = ' | '
-        for col in range(self.width):
+        for col in range(self.cols):
             s += str(col) + ' | '
-        s += os.linesep + '-' * (self.width * 4 + 2)
-        for row in range(self.height):
+        s += os.linesep + '-' * (self.cols * 4 + 2)
+        for row in range(self.rows):
             s += os.linesep + str(row) + '| '
-            for col in range(self.width):
+            for col in range(self.cols):
                 s += self._mapping[self._grid[row][col]] + ' | '
             s += os.linesep
-            s += '-' * (self.width * 4 + 2)
+            s += '-' * (self.cols * 4 + 2)
         return s
 
     def __eq__(self, other):

@@ -5,7 +5,7 @@ from agent.minimax import MinimaxAgent, MinimaxABAgent
 from agent.mcts import MCTSAgent
 
 
-def choose_agent(message):
+def choose_agent(message, board_shape):
     while True:
         print
         print(message)
@@ -33,7 +33,7 @@ def choose_agent(message):
                 number = eval(raw_input('Max Seconds: '))
                 return MCTSAgent(number)
             if number == 6:
-                return DQNAgent()
+                return DQNAgent(board_shape)
         except Exception as e:
             print(e)
 
