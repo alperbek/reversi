@@ -9,7 +9,7 @@ import time
 if __name__ == '__main__':
     board_size = (8, 8)
     black = choose_agent('Choose a black agent', board_size, Disc.BLACK.value)
-    epsilon = raw_input('DQN Start Epsilon [0.0 - 1.0]: ')
+    epsilon = raw_input('DQN Epsilon [0.0 - 1.0]: ')
     white = DQNAgent(board_size, Disc.WHITE.value, epsilon=float(epsilon))
     match = SimpleMatch(Reversi(black, white), logging_on=False)
     win_lose = deque([], 20)

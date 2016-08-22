@@ -71,8 +71,8 @@ class DQNAgent(Agent):
     def __init__(self, (rows, cols),
                  sign,
                  learning_on=True,
-                 learning_rate=0.0001,
-                 alpha=0.3,
+                 learning_rate=0.001,
+                 alpha=0.1,
                  gamma=1.0,
                  epsilon=0.6):
         self._dqn = DQN(rows, cols, learning_rate)
@@ -82,17 +82,7 @@ class DQNAgent(Agent):
         self._gamma = gamma
         self._epsilon = epsilon
         self._costs = []
-
-    def end(self, winner):
-        if self._learning_on:
-            print 'Epsilon: {:.2f} Cost: {:.2f}'.format(
-                self._epsilon, sum(self._costs)/len(self._costs))
-            if winner == self:
-                self._epsilon = max(self._epsilon - 0.01, 0.0)
-            else:
-                self._epsilon = min(self._epsilon + 0.01, 1.0)
-            self._costs = []
-        self._dqn.end()
+        self._prev_move = None
 
     def decide(self, env, state):
         valid_actions = env.valid_actions(state)
@@ -108,24 +98,33 @@ class DQNAgent(Agent):
             if action in valid_actions:
                 qv[ai] = max(qv[ai], -0.99)
             else:
-                qv[ai] = -1
+                qv[ai] = -1.0
 
         ai = np.argmax(qv)
         action = index_action(state.board, ai)
         if self._learning_on:
             # exploration
             p = np.exp(qv[ai])/np.sum(np.exp(qv))
-            if p < self._epsilon:
+            if p < random.random() * self._epsilon:
                 action = random.choice(valid_actions)
             # train q-func
-            new_state = env.apply(state, action)
-            ns = new_state.board.data(self._sign)
-            if env.is_active(new_state):
-                qv[ai] += self._alpha * (self._gamma * max(self._dqn.predict([ns])[0]) - qv[ai])
-            else:
-                winner = env.winner(new_state)
-                reward = 0 if winner is None else 1 if winner == self else -1
-                qv[ai] = reward
-            self._costs.append(self._dqn.train([st], [qv]))
+            if self._prev_move is not None:
+                ost, oai, oqv = self._prev_move
+                oqv[oai] += self._alpha * (self._gamma * max(qv) - oqv[oai])
+                self._costs.append(self._dqn.train([ost], [oqv]))
+            self._prev_move = (st, ai, qv)
 
         return action
+
+    def end(self, winner):
+        if self._learning_on:
+            reward = 0.0 if winner is None else 1.0 if winner == self else -1.0
+            ost, oai, oqv = self._prev_move
+            oqv[oai] += self._alpha * (reward - oqv[oai])
+            self._costs.append(self._dqn.train([ost], [oqv]))
+            print 'Epsilon: {:.3f} Cost: {:.2f}'.format(
+                self._epsilon, sum(self._costs)/len(self._costs))
+            self._costs = []
+            self._epsilon = max(self._epsilon - 0.001, 0.0)
+            self._prev_move = None
+        self._dqn.end()
