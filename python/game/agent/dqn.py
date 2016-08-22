@@ -23,7 +23,7 @@ class DQN(object):
         # feed forward
         h1 = tf.nn.relu(tf.matmul(x, w1) + b1)
         h2 = tf.nn.relu(tf.matmul(h1, w2) + b2)
-        prediction = tf.nn.softmax(tf.matmul(h2, w3) + b3)
+        prediction = tf.nn.tanh(tf.matmul(h2, w3) + b3)
         # optimization
         cost = tf.reduce_mean(tf.nn.l2_loss(prediction - y))
         optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost)
@@ -72,66 +72,60 @@ class DQNAgent(Agent):
                  sign,
                  learning_on=True,
                  learning_rate=0.0001,
-                 gamma=0.8,
-                 epsilon=0.99):
+                 alpha=0.3,
+                 gamma=1.0,
+                 epsilon=0.6):
         self._dqn = DQN(rows, cols, learning_rate)
         self._sign = sign
         self._learning_on = learning_on
+        self._alpha = alpha
         self._gamma = gamma
         self._epsilon = epsilon
-        self._replay = []
+        self._costs = []
 
     def end(self, winner):
-        self._train(winner)
+        if self._learning_on:
+            print 'Epsilon: {:.2f} Cost: {:.2f}'.format(
+                self._epsilon, sum(self._costs)/len(self._costs))
+            if winner == self:
+                self._epsilon = max(self._epsilon - 0.01, 0.0)
+            else:
+                self._epsilon = min(self._epsilon + 0.01, 1.0)
+            self._costs = []
         self._dqn.end()
-        self._replay = []
 
     def decide(self, env, state):
         valid_actions = env.valid_actions(state)
         if len(valid_actions) == 0:
             return None
 
-        # evaluate the current state
-        action = self._choose(state, valid_actions)
+        st = state.board.data(self._sign)
+        qv = self._dqn.predict([st])[0]
 
-        # learn from the experience (including the opponent action which is reflected in this agent's score)
-        self._learn(state, action)
+        for action in [(row, col) for row in range(state.board.rows)
+                       for col in range(state.board.cols)]:
+            ai = action_index(state.board, action)
+            if action in valid_actions:
+                qv[ai] = max(qv[ai], -0.99)
+            else:
+                qv[ai] = -1
+
+        ai = np.argmax(qv)
+        action = index_action(state.board, ai)
+        if self._learning_on:
+            # exploration
+            p = np.exp(qv[ai])/np.sum(np.exp(qv))
+            if p < self._epsilon:
+                action = random.choice(valid_actions)
+            # train q-func
+            new_state = env.apply(state, action)
+            ns = new_state.board.data(self._sign)
+            if env.is_active(new_state):
+                qv[ai] += self._alpha * (self._gamma * max(self._dqn.predict([ns])[0]) - qv[ai])
+            else:
+                winner = env.winner(new_state)
+                reward = 0 if winner is None else 1 if winner == self else -1
+                qv[ai] = reward
+            self._costs.append(self._dqn.train([st], [qv]))
 
         return action
-
-    def _choose(self, state, valid_actions):
-        p = self._predict(state.board.data(self._sign))
-        ai = np.argmax(p)
-        if not self._learning_on or random.random() * self._epsilon <= p[ai]:
-            action = index_action(state.board, ai)
-            if action in valid_actions:
-                return action
-        return random.choice(valid_actions)
-
-    def _predict(self, state):
-        return self._dqn.predict([state])[0]
-
-    def _learn(self, state, action):
-        if not self._learning_on:
-            return
-        st = state.board.data(self._sign)
-        ai = action_index(state.board, action)
-        self._replay.append((st, ai))
-
-    def _train(self, winner):
-        if not self._learning_on:
-            return
-        reward = 0 if winner is None else 1 if winner == self else -1
-        x, y = [], []
-        last_index = len(self._replay)-1
-        for i in range(last_index, 0, -1):
-            st, ai = self._replay[i]
-            qv = self._predict(st)
-            qv[ai] = reward
-            if i != last_index:
-                st2, ai2 = self._replay[i+1]
-                qv[ai] += self._gamma * max(self._predict(st2))
-            x.append(st)
-            y.append(qv)
-        cost = self._dqn.train(x, y)
-        print 'Training Cost: {:.2f}'.format(cost)
