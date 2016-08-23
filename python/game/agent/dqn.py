@@ -3,12 +3,14 @@ import random
 import numpy as np
 import tensorflow as tf
 import os.path
+from collections import deque
 
-dqn_file_name = 'DQN-learn'
+FILE_DQN_LEARNING_ON = 'dqn_learning_on'
+FIlE_DQN_LEARNING_OFF = 'dqn_learning_off'
 
 
 class DQN(object):
-    def __init__(self, rows, cols, learning_rate):
+    def __init__(self, rows, cols, learning_rate, learning_on):
         size = rows * cols
         # features and labels
         x = tf.placeholder(tf.float32, [None, size])
@@ -34,18 +36,22 @@ class DQN(object):
         self._optimizer = optimizer
         self._cost = cost
         self._saver = tf.train.Saver([w1, b1, w2, b2, w3, b3])
+        self._learning_on = learning_on
         # session
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         self._sess = tf.Session(config=config)
         self._sess.run(tf.initialize_all_variables())
         # persistence
-        if os.path.isfile(dqn_file_name):
-            self._saver.restore(self._sess, dqn_file_name)
+        if learning_on:
+            if os.path.isfile(FILE_DQN_LEARNING_ON):
+                self._saver.restore(self._sess, FILE_DQN_LEARNING_ON)
+            elif os.path.isfile(FIlE_DQN_LEARNING_OFF):
+                self._saver.restore(self._sess, FIlE_DQN_LEARNING_OFF)
 
-    def end(self):
-        self._saver.save(self._sess, dqn_file_name)
-        # self._sess.close()
+    def save(self):
+        if self._learning_on:
+            self._saver.save(self._sess, FILE_DQN_LEARNING_ON)
 
     def train(self, x, y):
         _, cost = self._sess.run([self._optimizer, self._cost], feed_dict={self._x: x, self._y: y})
@@ -71,17 +77,17 @@ class DQNAgent(Agent):
     def __init__(self, (rows, cols),
                  sign,
                  learning_on=True,
-                 learning_rate=0.001,
-                 alpha=0.1,
+                 learning_rate=0.0001,
                  gamma=1.0,
                  epsilon=0.6):
-        self._dqn = DQN(rows, cols, learning_rate)
+        self._dqn = DQN(rows, cols, learning_rate, learning_on)
         self._sign = sign
         self._learning_on = learning_on
-        self._alpha = alpha
         self._gamma = gamma
         self._epsilon = epsilon
         self._costs = []
+        self._replay = deque([], 1000)
+        self._batch_size = 100
         self._prev_move = None
 
     def decide(self, env, state):
@@ -96,7 +102,7 @@ class DQNAgent(Agent):
                        for col in range(state.board.cols)]:
             ai = action_index(state.board, action)
             if action in valid_actions:
-                qv[ai] = max(qv[ai], -0.99)
+                qv[ai] = min(max(qv[ai], -0.99), 1.0)
             else:
                 qv[ai] = -1.0
 
@@ -105,26 +111,40 @@ class DQNAgent(Agent):
         if self._learning_on:
             # exploration
             p = np.exp(qv[ai])/np.sum(np.exp(qv))
-            if p < random.random() * self._epsilon:
+            if p < self._epsilon or random.random() < self._epsilon:
                 action = random.choice(valid_actions)
+                ai = action_index(state.board, action)
             # train q-func
+            move = (st, ai)
             if self._prev_move is not None:
-                ost, oai, oqv = self._prev_move
-                oqv[oai] += self._alpha * (self._gamma * max(qv) - oqv[oai])
-                self._costs.append(self._dqn.train([ost], [oqv]))
-            self._prev_move = (st, ai, qv)
-
+                self._replay.append(self._prev_move + move)
+                if len(self._replay) > self._batch_size*2:
+                    self._train()
+            self._prev_move = move
         return action
+
+    def _train(self):
+        x = []
+        y = []
+        for replay in random.sample(self._replay, self._batch_size):
+            ost, oai, st, ai = replay
+            oqv = self._dqn.predict([ost])[0]
+            qv = self._dqn.predict([st])[0]
+            oqv[oai] = self._gamma * max(qv)
+            x.append(ost)
+            y.append(oqv)
+        self._costs.append(self._dqn.train(x, y))
 
     def end(self, winner):
         if self._learning_on:
             reward = 0.0 if winner is None else 1.0 if winner == self else -1.0
-            ost, oai, oqv = self._prev_move
-            oqv[oai] += self._alpha * (reward - oqv[oai])
+            ost, oai = self._prev_move
+            oqv = self._dqn.predict([ost])[0]
+            oqv[oai] = reward
             self._costs.append(self._dqn.train([ost], [oqv]))
             print 'Epsilon: {:.3f} Cost: {:.2f}'.format(
                 self._epsilon, sum(self._costs)/len(self._costs))
             self._costs = []
             self._epsilon = max(self._epsilon - 0.001, 0.0)
             self._prev_move = None
-        self._dqn.end()
+            self._dqn.save()
