@@ -61,11 +61,11 @@ class DQN(object):
         return self._sess.run(self._prediction, feed_dict={self._x: x})
 
 
-def action_index(board, action):
+def action_to_index(board, action):
     return action[0] * board.cols + action[1]
 
 
-def index_action(board, ai):
+def index_to_action(board, ai):
     return int(ai / board.rows), int(ai % board.cols)
 
 
@@ -78,73 +78,76 @@ class DQNAgent(Agent):
                  sign,
                  learning_on=True,
                  learning_rate=0.0001,
+                 alpha=0.1,
                  gamma=1.0,
                  epsilon=0.6):
         self._dqn = DQN(rows, cols, learning_rate, learning_on)
         self._sign = sign
         self._learning_on = learning_on
+        self._alpha = alpha
         self._gamma = gamma
         self._epsilon = epsilon
         self._costs = []
         self._replay = deque([], 1000)
         self._batch_size = 100
-        self._prev_move = None
 
     def decide(self, env, state):
         valid_actions = env.valid_actions(state)
         if len(valid_actions) == 0:
             return None
 
-        st = state.board.data(self._sign)
-        qv = self._dqn.predict([st])[0]
+        q_states = state.board.data(self._sign)
+        q_values = self._dqn.predict([q_states])[0]
 
-        for action in [(row, col) for row in range(state.board.rows)
-                       for col in range(state.board.cols)]:
-            ai = action_index(state.board, action)
+        rows, cols = state.board.rows, state.board.cols
+        for action in [(row, col) for row in range(rows) for col in range(cols)]:
+            action_index = action_to_index(state.board, action)
             if action in valid_actions:
-                qv[ai] = min(max(qv[ai], -0.99), 1.0)
+                q_values[action_index] = min(max(q_values[action_index], -0.99), 1.0)
             else:
-                qv[ai] = -1.0
+                q_values[action_index] = -1.0
 
-        ai = np.argmax(qv)
-        action = index_action(state.board, ai)
+        # greedy
+        chosen_action_index = np.argmax(q_values)
+
         if self._learning_on:
-            # exploration
-            p = np.exp(qv[ai])/np.sum(np.exp(qv))
-            if p < self._epsilon or random.random() < self._epsilon:
-                action = random.choice(valid_actions)
-                ai = action_index(state.board, action)
             # train q-func
-            move = (st, ai)
-            if self._prev_move is not None:
-                self._replay.append(self._prev_move + move)
-                if len(self._replay) > self._batch_size*2:
-                    self._train()
-            self._prev_move = move
-        return action
+            if len(self._replay) > self._batch_size*2:
+                self._train(reward=0)
 
-    def _train(self):
-        x = []
-        y = []
-        for replay in random.sample(self._replay, self._batch_size):
-            ost, oai, st, ai = replay
-            oqv = self._dqn.predict([ost])[0]
-            qv = self._dqn.predict([st])[0]
-            oqv[oai] = self._gamma * max(qv)
-            x.append(ost)
-            y.append(oqv)
+            # exploration by epsilon
+            p = np.exp(q_values[chosen_action_index])/np.sum(np.exp(q_values))
+            if min(p, random.random()) < self._epsilon:
+                action = random.choice(valid_actions)
+                chosen_action_index = action_to_index(state.board, action)
+
+            # append the new states and values for the next training
+            q_values[chosen_action_index] = self._alpha * (self._gamma * max(q_values) - q_values[chosen_action_index])
+            move = [q_states, chosen_action_index, q_values]
+            self._replay.append(move)
+
+        return index_to_action(state.board, chosen_action_index)
+
+    def _train(self, reward):
+        # update the last move with reward
+        q_states, chosen_action_index, q_values = self._replay[-1]
+        q_values[chosen_action_index] += self._alpha * reward
+        self._replay[-1][-1] = q_values
+        # experience replay with the last move
+        replay_indices = np.random.randint(0, len(self._replay)-1, self._batch_size)
+        random_position = np.random.randint(0, self._batch_size)
+        replay_indices[random_position] = -1
+        # train q-network
+        experience_replay = [self._replay[index] for index in replay_indices]
+        x, y = zip(*[(q_states, q_values) for q_states, _, q_values in experience_replay])
         self._costs.append(self._dqn.train(x, y))
 
     def end(self, winner):
         if self._learning_on:
-            reward = 0.0 if winner is None else 1.0 if winner == self else -1.0
-            ost, oai = self._prev_move
-            oqv = self._dqn.predict([ost])[0]
-            oqv[oai] = reward
-            self._costs.append(self._dqn.train([ost], [oqv]))
-            print 'Epsilon: {:.3f} Cost: {:.2f}'.format(
-                self._epsilon, sum(self._costs)/len(self._costs))
+            self._train(reward=0.0 if winner is None else 1.0 if winner == self else -1.0)
+            print 'Epsilon: {:.3f} Cost: {:.2f}'.format(self._epsilon, sum(self._costs)/len(self._costs))
             self._costs = []
             self._epsilon = max(self._epsilon - 0.001, 0.0)
-            self._prev_move = None
             self._dqn.save()
+
+
