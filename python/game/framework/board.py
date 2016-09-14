@@ -1,6 +1,5 @@
 import copy
 import os
-import numpy as np
 
 
 class Board(object):
@@ -18,9 +17,12 @@ class Board(object):
         return len(self._grid[0])
 
     def data(self, sign):
-        return np.array([self[(row, col)].value * sign
-                         for row in range(self.rows)
-                         for col in range(self.cols)])
+        grid = []
+        for row in range(self.rows):
+            grid.append([])
+            for col in range(self.cols):
+                grid[row].append(self[row, col].value*sign)
+        return grid
 
     def in_bounds(self, cell):
         row, col = cell

@@ -13,7 +13,7 @@ if __name__ == '__main__':
     white = DQNAgent(board_size, Disc.WHITE.value, epsilon=float(epsilon))
     match = SimpleMatch(Reversi(black, white), logging_on=False)
     win_lose = deque([], 20)
-    for i in range(10000):
+    for i in range(1000):
         winner = match.run(State(create_board(board_size), black, white, 2, 2))
         win_lose.append(1.0 if winner == white else 0)
         print('[{}] #{} {} vs {} {} Win={:.2f}%'.format(
