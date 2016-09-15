@@ -24,9 +24,9 @@ class DQN(object):
         c1 = tf.nn.relu(tf.nn.conv2d(x1, conv_w1, strides=[1, 1, 1, 1], padding='SAME') + conv_b1)
         # 2nd convolution
         conv_s2 = 4
-        conv_f2 = 8
+        conv_f2 = 16
         conv_w2 = tf.Variable(tf.truncated_normal([conv_s2, conv_s2, conv_f1, conv_f2]))
-        conv_b2 = tf.Variable(tf.truncated_normal([8]))
+        conv_b2 = tf.Variable(tf.truncated_normal([conv_f2]))
         c2 = tf.nn.relu(tf.nn.conv2d(c1, conv_w2, strides=[1, 1, 1, 1], padding='SAME') + conv_b2)
         c2_size = np.product([s.value for s in c2.get_shape()[1:]])
         # 1st fully connected
@@ -104,6 +104,8 @@ class DQNAgent(Agent):
         self._y = deque([], 200)
         self._a = deque([], 200)
         self._min_batch_size = 100
+        self._prev_action = None
+        self._prev_q_values = None
 
     def decide(self, env, state):
         valid_actions = env.valid_actions(state)
@@ -134,11 +136,11 @@ class DQNAgent(Agent):
         # update q_value for the last action and train network
         if self._learning_on:
             # update
-            if len(self._x) > 0:
-                prev_row, prev_col = self._a[-1]
-                prev_q_values = self._y[-1]
-                prev_q_values[prev_row][prev_col] += \
-                    self._alpha * (self._gamma * np.max(np.max(q_values)) - prev_q_values[prev_row][prev_col])
+            if self._prev_action is not None:
+                prev_row, prev_col = self._prev_action
+                self._prev_q_values[prev_row][prev_col] = \
+                    (1.0 - self._alpha) * self._prev_q_values[prev_row][prev_col] + \
+                    self._alpha * (self._gamma * np.max(np.max(q_values)))
 
             # train q-func
             if len(self._x) > self._min_batch_size:
@@ -148,6 +150,8 @@ class DQNAgent(Agent):
             self._x.append(q_states)
             self._y.append(q_values)
             self._a.append(action)
+            self._prev_q_values = q_values
+            self._prev_action = action
 
         return action
 
@@ -155,13 +159,14 @@ class DQNAgent(Agent):
         if self._learning_on:
             # update the last move with reward
             reward = 0.0 if winner is None else 1.0 if winner == self else -1.0
-            prev_row, prev_col = self._a[-1]
-            prev_q_values = self._y[-1]
-            prev_q_values[prev_row][prev_col] = reward
+            prev_row, prev_col = self._prev_action
+            self._prev_q_values[prev_row][prev_col] += self._alpha * reward
             self._costs.append(self._dqn.train(self._x, self._y))
             print 'Epsilon: {:.3f} Cost: {:.2f}'.format(self._epsilon, sum(self._costs)/len(self._costs))
             self._costs = []
             self._epsilon = max(self._epsilon - 0.001, 0.0)
             self._dqn.save()
+            self._prev_action = None
+            self._prev_q_values = None
 
 
