@@ -37,7 +37,7 @@ class DQN(object):
         # 2nd fully connected
         w2 = tf.Variable(tf.truncated_normal([size, size]))
         b2 = tf.Variable(tf.truncated_normal([size]))
-        h1_drop = tf.nn.dropout(h1, 0.8)
+        h1_drop = tf.nn.dropout(h1, 0.6)
         h2 = tf.nn.relu(tf.matmul(h1_drop, w2) + b2)
         # output layer
         w3 = tf.Variable(tf.truncated_normal([size, size]))
@@ -103,7 +103,7 @@ class DQNAgent(Agent):
         self._x = deque([], 200)
         self._y = deque([], 200)
         self._a = deque([], 200)
-        self._min_batch_size = 100
+        self._min_batch_size = 200
         self._prev_action = None
         self._prev_q_values = None
 
@@ -143,7 +143,7 @@ class DQNAgent(Agent):
                     self._alpha * (self._gamma * np.max(np.max(q_values)))
 
             # train q-func
-            if len(self._x) > self._min_batch_size:
+            if len(self._x) >= self._min_batch_size:
                 self._costs.append(self._dqn.train(self._x, self._y))
 
             # append the new states and values for the next training
@@ -160,7 +160,9 @@ class DQNAgent(Agent):
             # update the last move with reward
             reward = 0.0 if winner is None else 1.0 if winner == self else -1.0
             prev_row, prev_col = self._prev_action
-            self._prev_q_values[prev_row][prev_col] += self._alpha * reward
+            self._prev_q_values[prev_row][prev_col] = \
+                (1.0 - self._alpha) * self._prev_q_values[prev_row][prev_col] + \
+                self._alpha * reward
             self._costs.append(self._dqn.train(self._x, self._y))
             print 'Epsilon: {:.3f} Cost: {:.2f}'.format(self._epsilon, sum(self._costs)/len(self._costs))
             self._costs = []
