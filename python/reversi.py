@@ -1,10 +1,7 @@
 import itertools
 
 from enum import Enum
-from game.framework.board import Board
-from game.framework.environment import Environment
-from game.framework.match import SimpleMatch
-from game.framework.state import State
+from game.framework import Board, Environment, SimpleMatch, State
 from game.console import choose_agent
 
 
