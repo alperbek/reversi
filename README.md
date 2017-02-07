@@ -115,7 +115,7 @@ It seems quite strong.  I let it plays with Minimax with Alpha/Beta and it won a
 
 This player learns from the experience as it plays but it forgets everything once the game is over.
 
-## Deep-Q Network (Word In Progress)
+## Deep-Q Network (Work In Progress)
 
 This player uses [Q-learning](https://en.wikipedia.org/wiki/Q-learning) (from Reinforcement Learning).
 There are so many combiation of (state, action) to fit into a computer memory.
